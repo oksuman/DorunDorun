@@ -1,8 +1,8 @@
 import 'dart:async';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 
 
 void main() {
@@ -16,56 +16,55 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Do run Do run',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'My Location Information'),
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HomePage extends StatefulWidget{
+  const HomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  State<HomePage> createState() => _HomePageState();
+ }
 
-class _MyHomePageState extends State<MyHomePage> {
+ class _HomePageState extends State<HomePage>{
   Location location = Location();
-  int count = 0;
+
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
-  late Timer movementTimer;
-  double currentLatitude = 0;     // 현재 위도
-  double currentLongtitude = 0;   // 현재 경도
 
-  late double prevLatitude;
-  late double prevLongtitude;
+  @override
+  void initState() {
+    super.initState();
+    _giveAuthority();
+  }
 
-  final Distance distanceMoved = const Distance();
-  double meterMoved = 0;
+  @override
+   Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Do run! Do run!"),
+      ),
+      body: Center(
+          child :
+          FloatingActionButton(
+            child: const Text("Start"),
+            onPressed: () async{
+              await location.getLocation().then((res){
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => RunPage(initialLocation: res)));
+              });
+            },
+          )
+      ),
+    );
+  }
 
   _giveAuthority() async{
     _serviceEnabled = await location.serviceEnabled();
@@ -75,7 +74,6 @@ class _MyHomePageState extends State<MyHomePage> {
         return;
       }
     }
-
     _permissionGranted = await location.hasPermission();
     if(_permissionGranted == PermissionStatus.denied){
       _permissionGranted = await location.hasPermission();
@@ -84,87 +82,76 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
   }
+ }
 
-  _locateMe() async{
-    if(!_serviceEnabled ||  _permissionGranted == PermissionStatus.denied) {
-      _giveAuthority();
-    }
 
-    await location.getLocation().then((res){
-      setState((){
-        currentLatitude = res.latitude ?? -1;
-        currentLongtitude = res.longitude ?? -1;
-      });
-    });
-  }
+class RunPage extends StatefulWidget{
+  final LocationData initialLocation;
 
-  _onStarted(){
-    _locateMe();
-    movementTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      setState(() {
-        count += 1;
-        prevLatitude = currentLatitude;
-        prevLongtitude = currentLongtitude;
-        _locateMe();
-        final double deltaMeter = distanceMoved.as(LengthUnit.Meter,
-            LatLng(currentLatitude, currentLongtitude),
-            LatLng(prevLatitude, prevLongtitude)
-        ).toDouble();
-        meterMoved += deltaMeter;
-      });
-    });
-  }
+  const RunPage({super.key, required this.initialLocation});
 
   @override
-  initState(){
+  State<RunPage> createState() => _RunPageState();
+}
+
+class _RunPageState extends State<RunPage>{
+  Location location = Location();
+  Distance distance = const Distance();
+
+  double distanceMoved = 0;
+  List<LatLng> pathMoved = List<LatLng>.empty(growable: true);
+
+
+  @override
+  void initState() {
     super.initState();
-    _giveAuthority();
+    pathMoved.add(LatLng(widget.initialLocation.latitude!, widget.initialLocation.longitude!));
   }
 
   @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: const Text("Do run!"),
+        title: const Text("Do run! Do run!")
       ),
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: Text("Lat: $currentLatitude, Lon: $currentLongtitude"),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text("distance: $meterMoved"),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text("count : $count"),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              child: ElevatedButton(
-                child: const Text("Start"),
-                onPressed: () => _onStarted(),
-              )
-            )
-          ]
-        )
-      ),
+      body : StreamBuilder<LocationData>(
+        initialData: widget.initialLocation,
+        stream: location.onLocationChanged,
+        builder: (context, snapshot){
+          debugPrint("데이터 왔수다");
+          final changedLocation = snapshot.data;
+          debugPrint("Accuracy : ${changedLocation?.accuracy}");
+
+          final previousLatitude = pathMoved.last.latitude;
+          final previousLongitude = pathMoved.last.longitude;
+
+          final currentLatitude = changedLocation?.latitude ?? previousLatitude;
+          final currentLongitude = changedLocation?.longitude ?? previousLongitude;
+
+
+          debugPrint("previousLatitude : $previousLatitude");
+          debugPrint("previousLongitude : $previousLongitude");
+          debugPrint("currentLatitude : $currentLatitude");
+          debugPrint("currentLongitude : $currentLongitude");
+          debugPrint("path : $pathMoved");
+
+          if(currentLatitude != previousLatitude && currentLongitude != previousLongitude){
+            final cur = LatLng(currentLatitude, currentLongitude);
+            final distanceDelta = distance.as(const LengthUnit(1.0), cur, pathMoved.last);
+            if(distanceDelta > 10 && (changedLocation?.accuracy ?? 0) > 20){
+              distanceMoved += distanceDelta;
+              pathMoved.add(cur);
+            }
+            debugPrint("distanceDelta : $distanceDelta");
+          }
+          return Center(
+           child: Text("Distance : $distanceMoved"),
+          );
+        }
+      )
     );
   }
 }
+
+
+
