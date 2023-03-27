@@ -3,6 +3,7 @@
  *******************************/
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -12,9 +13,24 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _authentication = FirebaseAuth.instance;
+  String _userEmail = ''; //유저 이메일 정보
+  String _userPassword = ''; //유저 패스워드 정보
+  String _passwordCheck = ''; //유저 패스워드 확인 정보
+
+  bool _tryValidation() { //계정 생성 형식 확인
+    final isValid = _formKey.currentState!.validate();
+    if (isValid) { //형식이 맞으면,
+      _formKey.currentState!.save();
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return GestureDetector( //키보드 가리기
       onTap: () {
         FocusScope.of(context).unfocus();
       },
@@ -37,37 +53,47 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Padding(
               padding: const EdgeInsets.only(left: 20, right: 20),
               child: Form(
+                key: _formKey,
                 child: Column(
                   children: [
                     SizedBox(height: 20),
-                    TextFormField( //닉네임 텍스트필드
-                      decoration: InputDecoration(
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                          labelText: "닉네임",
-                          labelStyle: TextStyle(
-                            fontSize: 16,
-                          )),
-                      keyboardType: TextInputType.text,
-                      //validator: ,
-                      //onSaved: (){},
-                      //onChanged: (){},
-                    ),
-                    SizedBox(height: 20),
                     TextFormField( //이메일 텍스트필드
+                      keyboardType: TextInputType.emailAddress,
+                      onSaved: ((value) {
+                        _userEmail = value!;
+                      }),
+                      onChanged: (value) {
+                        _userEmail = value;
+                      },
+                      validator: ((value) {
+                        if (value!.isEmpty || !value.contains('@')) { //이메일 형식이 맞지 않으면,
+                          return "유효하지 않은 이메일 형식입니다.";
+                        }
+                        return null;
+                      }),
                       decoration: InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "이메일",
                           labelStyle: TextStyle(
                             fontSize: 16,
-                          )),
-                      keyboardType: TextInputType.emailAddress,
-                      //validator: ,
-                      //onSaved: (){},
-                      //onChanged: (){},
+                          )
+                      ),
                     ),
                     SizedBox(height: 20),
                     TextFormField( //패스워드 텍스트필드
                       obscureText: true,
+                      validator: ((value) {
+                        if (value!.isEmpty || value.length < 8) { //패스워드가 8자 미만이라면,
+                          return "패스워드는 최소 8글자 이상 입력해야 합니다.";
+                        }
+                        return null;
+                      }),
+                      onSaved: ((value) {
+                        _userPassword = value!;
+                      }),
+                      onChanged: (value) {
+                        _userPassword = value;
+                      },
                       decoration: InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "패스워드",
@@ -75,13 +101,22 @@ class _SignUpPageState extends State<SignUpPage> {
                             fontSize: 16,
                           )),
                       keyboardType: TextInputType.text,
-                      //validator: ,
-                      //onSaved: (){},
-                      //onChanged: (){},
                     ),
                     SizedBox(height: 20),
                     TextFormField( //패스워드 확인 텍스트필드
                       obscureText: true,
+                      validator: ((value) {
+                        if (value != _userPassword) { //패스워드와 같지 않으면,
+                          return "패스워드가 일치하지 않습니다.";
+                        }
+                        return null;
+                      }),
+                      onSaved: ((value) {
+                        _passwordCheck = value!;
+                      }),
+                      onChanged: (value) {
+                        _passwordCheck = value;
+                      },
                       decoration: InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "패스워드 확인",
@@ -89,9 +124,6 @@ class _SignUpPageState extends State<SignUpPage> {
                             fontSize: 16,
                           )),
                       keyboardType: TextInputType.text,
-                      //validator: ,
-                      //onSaved: (){},
-                      //onChanged: (){},
                     ),
                     SizedBox(height: 40),
                     ElevatedButton( //계정 생성 버튼
@@ -101,14 +133,34 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           backgroundColor: Colors.yellow,
                         ),
-                        onPressed: () {
-                          //Navigator.pushNamed(context, "/");
+                        onPressed: () async{
+                          FocusScope.of(context).unfocus();
+                          if(_tryValidation()){ //형식 확인
+                            try{
+                              final newUser = await _authentication
+                                  .createUserWithEmailAndPassword(
+                                  email: _userEmail, password: _userPassword); //파이어베이스 계정 확인
+                              if(newUser.user != null){ //계정 있으면 이동
+                                Navigator.pushNamed(context, "/toMakeUserPage");
+                              }
+                            }catch(e){ //에러 메시지
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                  "이미 존재하는 이메일이나 패스워드입니다.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                backgroundColor: Colors.grey,
+                              ));
+                            }
+                          }
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Text(
-                              "계정 생성하기",
+                              "다 음",
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 14,

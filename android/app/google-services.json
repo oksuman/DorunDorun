@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "873225854411",
+    "firebase_url": "https://dorun-server-default-rtdb.firebaseio.com",
+    "project_id": "dorun-server",
+    "storage_bucket": "dorun-server.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873225854411:android:5034ca34eef096df94ea4e",
+        "android_client_info": {
+          "package_name": "com.example.dorun_dorun"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "873225854411-0cbj19onmuqug6du7ig5ulv5uqqplkfb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAL76SZoifooSDm6t3fhmjSYftmt2U0lFc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "873225854411-0cbj19onmuqug6du7ig5ulv5uqqplkfb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "873225854411-aappmrv1av2pgvbsf03ef3pm497vegu5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dorunDorun"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
