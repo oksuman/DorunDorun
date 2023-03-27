@@ -1,3 +1,5 @@
+import 'package:dorun_dorun/homeScreens/runningPage.dart';
+
 import 'navigationBarPage.dart';
 import 'loginScreens/signInPage.dart';
 import 'loginScreens/signUpPage.dart';
@@ -21,6 +23,7 @@ class MyApp extends StatelessWidget {
           '/toSignInPage': (context) => const SignInPage(), //로그인 페이지 이동
           '/toSignUpPage': (context) => const SignUpPage(), //계정생성 페이지 이동
           '/toNavigationBarPage': (context) => const NavigationBarPage(), //네비게이션 바 페이지 이동
+          '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
         });
   }
 }

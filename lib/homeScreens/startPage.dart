@@ -33,7 +33,28 @@ class _StartPageState extends State<StartPage> {
 
       ),
       body: Center(
-
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton( //계정 생성하기 버튼
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.yellow,
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context, "/toRunningPage");
+                },
+                child: Text(
+                  "달리기 시작",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                  ),
+                )),
+          ],
+        ),
       ),
     );
   }
