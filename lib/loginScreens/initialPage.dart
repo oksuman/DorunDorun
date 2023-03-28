@@ -77,6 +77,7 @@ class InitialPage extends StatelessWidget {
                       ),
                       onPressed: () {
                         Navigator.pushNamed(context, "/toSignUpPage");
+                        //Navigator.pushNamed(context, "/toMakeUserPage");
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

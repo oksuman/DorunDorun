@@ -2,8 +2,12 @@
 * 유저 정보를 입력하는 페이지입니다.   *
 *******************************/
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import '../firebaseService.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum Gender {MAN, WOMAN}
 
@@ -28,10 +32,22 @@ class _MakeUserPageState extends State<MakeUserPage> {
   Gender _gender = Gender.MAN; //성별 라디오 버튼 선택지
 
   String _userName = ''; //유저 닉네임
-  String _userGender = ''; //유저 성별
+  String _userGender = '남자'; //유저 성별
   String _userAge = '20 살'; //유저 나이
   String _userHeight = '160 cm'; //유저 키
   String _userWeight = '60 kg'; //유저 몸무게
+
+  final CollectionReference userCollection =
+    FirebaseFirestore.instance.collection("users"); //파이베이스 유저 컬렉션 가져오기
+
+  bool _tryValidation() { //계정 생성 형식 확인
+    final isValid = _formKey.currentState!.validate();
+    if (isValid) { //형식이 맞으면,
+      _formKey.currentState!.save();
+      return true;
+    }
+    return false;
+  }
 
   @override
   void initState() { //스크롤 리스트 초기화
@@ -49,6 +65,8 @@ class _MakeUserPageState extends State<MakeUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    UserCredential _newUser = ModalRoute.of(context)!.settings.arguments as UserCredential;
+
     return GestureDetector( //키보드 내리기
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -220,9 +238,41 @@ class _MakeUserPageState extends State<MakeUserPage> {
                           ),
                           backgroundColor: Colors.yellow,
                         ),
-                        onPressed: () {
+                        onPressed: () async{
                           FocusScope.of(context).unfocus();
-                          Navigator.pushNamed(context, "/toNavigationBarPage");
+                          QuerySnapshot querySnapshot
+                            = await userCollection.get();
+                          List<Map<String, dynamic>> allUserData
+                            = querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+                          if(_tryValidation()){ //닉네임 형식 확인
+                            try{
+                              for(int i=0; i<allUserData.length; i++){ //중복 닉네임 확인
+                                if(allUserData[i]["fullName"] == _userName){
+                                  throw Error();
+                                }
+                              }
+                              await FirebaseService(uid: _newUser.user!.uid) //유저 정보 파이어베이스 업로드
+                                  .savingUserData(
+                                _newUser.user!.email!,
+                                _userName,
+                                _userGender,
+                                _userAge,
+                                _userHeight,
+                                _userWeight,
+                              );
+                              Navigator.pushNamed(context, "/toNavigationBarPage"); //메인 페이지 이동
+                            }catch(e){
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                  "이미 존재하는 닉네임입니다.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                backgroundColor: Colors.grey,
+                              ));
+                            }
+                          }
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -269,7 +319,7 @@ class _MakeUserPageState extends State<MakeUserPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                          _ageList[index].toString()
+                          _ageList[index]
                       ),
                     ],
                   );
@@ -305,7 +355,7 @@ class _MakeUserPageState extends State<MakeUserPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                          _heightList[index].toString()
+                          _heightList[index]
                       ),
                     ],
                   );
@@ -341,7 +391,7 @@ class _MakeUserPageState extends State<MakeUserPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                          _weightList[index].toString()
+                          _weightList[index]
                       ),
                     ],
                   );

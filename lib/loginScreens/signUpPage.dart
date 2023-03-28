@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
@@ -141,12 +142,12 @@ class _SignUpPageState extends State<SignUpPage> {
                                   .createUserWithEmailAndPassword(
                                   email: _userEmail, password: _userPassword); //파이어베이스 계정 확인
                               if(newUser.user != null){ //계정 있으면 이동
-                                Navigator.pushNamed(context, "/toMakeUserPage");
+                                Navigator.pushNamed(context, "/toMakeUserPage", arguments: newUser); //유저 정보를 입력페이지로 전달
                               }
                             }catch(e){ //에러 메시지
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text(
-                                  "이미 존재하는 이메일이나 패스워드입니다.",
+                                  "이미 존재하는 이메일이거나 유효하지 않은 형식입니다.",
                                   style: TextStyle(
                                     fontSize: 14,
                                   ),
@@ -176,3 +177,4 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
+
