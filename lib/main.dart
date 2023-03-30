@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'utilities/firebase_options.dart';
 
-import 'homeScreens/runningPage.dart';
-import 'navigationBarPage.dart';
-import 'loginScreens/makeUserPage.dart';
-import 'loginScreens/signInPage.dart';
-import 'loginScreens/signUpPage.dart';
-import 'loginScreens/initialPage.dart';
+
+import 'Screens/navigationBarPage.dart';
+import 'Screens/homeScreens/runningPage.dart';
+import 'Screens/loginScreens/makeUserPage.dart';
+import 'Screens/loginScreens/signInPage.dart';
+import 'Screens/loginScreens/signUpPage.dart';
+import 'Screens/loginScreens/initialPage.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
