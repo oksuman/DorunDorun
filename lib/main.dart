@@ -1,7 +1,8 @@
+import 'package:dorun_dorun/screens/homeScreens/makeRoomPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'utilities/firebase_options.dart';
 
+import 'utilities/firebase_options.dart';
 
 import 'Screens/navigationBarPage.dart';
 import 'Screens/homeScreens/runningPage.dart';
@@ -32,7 +33,8 @@ class MyApp extends StatelessWidget {
           '/toSignUpPage': (context) => const SignUpPage(), //계정생성 페이지 이동
           '/toMakeUserPage': (context) => const MakeUserPage(), //유저 정보 작성 페이지 이동
           '/toNavigationBarPage': (context) => const NavigationBarPage(), //네비게이션 바 페이지 이동
-          // '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
+          '/toMakeRoomPage': (context) => const MakeRoomPage(), //러너 방 생성 페이지 이동
+          '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
         });
   }
 }

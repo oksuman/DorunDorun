@@ -10,17 +10,15 @@ import 'package:latlong2/latlong.dart';
 import 'runResultPage.dart';
 
 class RunningPage extends StatefulWidget {
-  final LocationData initialLocation;
-
-  const RunningPage({super.key, required this.initialLocation});
+  const RunningPage({Key? key}) : super(key: key);
 
   @override
   State<RunningPage> createState() => _RunningPageState();
 }
 
 class _RunningPageState extends State<RunningPage> {
-
   Location location = Location();
+
   Distance distance = const Distance();
   Map<String, int> currentPace = {
     'min': 0,
@@ -34,26 +32,23 @@ class _RunningPageState extends State<RunningPage> {
   List<Map<String, Object>> records =
   List<Map<String, Object>>.empty(growable: true);
 
-  @override
-  void initState() {
-    super.initState();
-    pathMoved.add(LatLng(
-        widget.initialLocation.latitude!, widget.initialLocation.longitude!));
-    records.add({
-      'index': hundredMeterCounter,
-      'time': widget.initialLocation.time!,
-      'speed': widget.initialLocation.speed!,
-      'distanceMoved': distanceMoved,
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
+    final LocationData initialLocation = ModalRoute.of(context)!.settings.arguments as LocationData;
+    pathMoved.add(LatLng(
+        initialLocation.latitude!, initialLocation.longitude!));
+    records.add({
+      'index': hundredMeterCounter,
+      'time': initialLocation.time!,
+      'speed': initialLocation.speed!,
+      'distanceMoved': distanceMoved,
+    });
+
     return Scaffold(
       appBar: AppBar(title: const Text("Do run! Do run!")),
       body: StreamBuilder<LocationData>(
-          initialData: widget.initialLocation,
+          initialData: initialLocation,
           stream: location.onLocationChanged,
           builder: (context, snapshot) {
             debugPrint("데이터 왔수다");

@@ -3,8 +3,6 @@
  *******************************/
 
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
-import 'runningPage.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({Key? key}) : super(key: key);
@@ -14,34 +12,6 @@ class StartPage extends StatefulWidget {
 }
 
 class _StartPageState extends State<StartPage> {
-
-  Location location = Location();
-
-  late bool _serviceEnabled;
-  late PermissionStatus _permissionGranted;
-
-  _giveAuthority() async{
-    _serviceEnabled = await location.serviceEnabled();
-    if(!_serviceEnabled){
-      _serviceEnabled = await location.serviceEnabled();
-      if(!_serviceEnabled){
-        return;
-      }
-    }
-    _permissionGranted = await location.hasPermission();
-    if(_permissionGranted == PermissionStatus.denied){
-      _permissionGranted = await location.hasPermission();
-      if(_permissionGranted != PermissionStatus.granted){
-        return;
-      }
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _giveAuthority();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,31 +35,75 @@ class _StartPageState extends State<StartPage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            ElevatedButton( //달리기 버튼
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  backgroundColor: Colors.yellow,
-                ),
-                onPressed: () async{
-                  WidgetsFlutterBinding.ensureInitialized();
-                  // Wakelock.enable();
-                  await location.getLocation().then((res){
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) => RunningPage(initialLocation: res)));
-                  });
-                },
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: 500,
+              color: Colors.grey,
+              child: Text("아바타창")
+            ),
+            SizedBox(height:45),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton( //달리기 버튼
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      backgroundColor: Colors.yellow,
+                    ),
+                    onPressed: () async{
 
-                child: Text(
-                  "달리기 시작",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                  ),
-                )),
+                    },
+
+                    child: Text(
+                      "메시지함",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                      ),
+                    )),
+                ElevatedButton( //달리기 버튼
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      backgroundColor: Colors.yellow,
+                    ),
+                    onPressed: () async{
+                      Navigator.pushNamed(context, "/toMakeRoomPage");
+                    },
+
+                    child: Text(
+                      "시작",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                      ),
+                    )),
+                ElevatedButton( //달리기 버튼
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      backgroundColor: Colors.yellow,
+                    ),
+                    onPressed: () async{
+
+                    },
+
+                    child: Text(
+                      "아바타",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                      ),
+                    )),
+              ],
+            )
+
           ],
         ),
       ),
