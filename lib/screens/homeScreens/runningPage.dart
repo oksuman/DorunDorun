@@ -70,8 +70,7 @@ class _RunningPageState extends State<RunningPage> {
             final currentSpeed = changedLocation?.speed ?? 0;
             final currentTime = changedLocation?.time ?? 0;
 
-            var dt =
-            DateTime.fromMillisecondsSinceEpoch(currentTime.toInt());
+            var dt = DateTime.fromMillisecondsSinceEpoch(currentTime.toInt());
 
             debugPrint("previousLatitude : $previousLatitude");
             debugPrint("previousLongitude : $previousLongitude");
@@ -84,27 +83,26 @@ class _RunningPageState extends State<RunningPage> {
               final cur = LatLng(currentLatitude, currentLongitude);
               final distanceDelta =
               distance.as(const LengthUnit(1.0), cur, pathMoved.last);
-              if (distanceDelta > 10 &&
-                  (changedLocation?.accuracy ?? 0) > 20) {
+              if ((changedLocation?.accuracy ?? 0) > 20) {
                 distanceMoved += distanceDelta;
                 pathMoved.add(cur);
-                if (distanceMoved >= 100 * (hundredMeterCounter + 1)) {
-                  var previousTime = records[hundredMeterCounter]['time'];
-
-                  hundredMeterCounter += 1;
-                  records.add({
-                    'index': hundredMeterCounter,
-                    'time': currentTime,
-                    'speed': currentSpeed,
-                    'distanceMoved': distanceMoved,
-                  });
-                  if (previousTime is num) {
-                    var deltaSeconds =
-                    ((currentTime - previousTime) * 1000).toInt();
-                    currentPace['min'] = deltaSeconds * 10 ~/ 60;
-                    currentPace['sec'] = deltaSeconds * 10 % 60;
-                  }
-                }
+                // if (distanceMoved >= 100 * (hundredMeterCounter + 1)) {
+                //   var previousTime = records[hundredMeterCounter]['time'];
+                //
+                //   hundredMeterCounter += 1;
+                //   records.add({
+                //     'index': hundredMeterCounter,
+                //     'time': currentTime,
+                //     'speed': currentSpeed,
+                //     'distanceMoved': distanceMoved,
+                //   });
+                //   if (previousTime is num) {
+                //     var deltaSeconds =
+                //     ((currentTime - previousTime) * 1000).toInt();
+                //     currentPace['min'] = deltaSeconds * 10 ~/ 60;
+                //     currentPace['sec'] = deltaSeconds * 10 % 60;
+                //   }
+                // }
               }
               debugPrint("distanceDelta : $distanceDelta");
             }
@@ -128,7 +126,7 @@ class _RunningPageState extends State<RunningPage> {
                     height: 80,
                     width: 200,
                     child: Text(
-                        "평균 페이스 : ${currentPace['min']}분 ${currentPace['sec']}초"),
+                        "평균 페이스 : 아직띠"),
                   ),
                   Container(
                     height: 80,
