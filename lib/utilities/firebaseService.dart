@@ -21,6 +21,7 @@ class FirebaseService{
       "height": height,
       "weight": weight,
       "coins": 0,
+      "friends": [],
     });
   }
 
