@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
           '/toSignUpPage': (context) => const SignUpPage(), //계정생성 페이지 이동
           '/toMakeUserPage': (context) => const MakeUserPage(), //유저 정보 작성 페이지 이동
           '/toNavigationBarPage': (context) => const NavigationBarPage(), //네비게이션 바 페이지 이동
-          '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
+          // '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
         });
   }
 }
