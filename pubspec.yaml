@@ -42,6 +42,7 @@ dependencies:
   location: ^4.4.0
   latlong2: ^0.8.1
   flutter_map: ^3.1.0
+  flutter_secure_storage: ^8.0.0
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@
 * 유저 정보를 입력하는 페이지입니다.   *
 *******************************/
 
+import 'package:dorun_dorun/utilities/storageService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class _MakeUserPageState extends State<MakeUserPage> {
 
   @override
   Widget build(BuildContext context) {
-    UserCredential _newUser = ModalRoute.of(context)!.settings.arguments as UserCredential;
+    UserCredential _newUser = ModalRoute.of(context)!.settings.arguments as UserCredential; //argument 받아오기
 
     return GestureDetector( //키보드 내리기
       onTap: () {
@@ -260,9 +261,13 @@ class _MakeUserPageState extends State<MakeUserPage> {
                                 _userHeight,
                                 _userWeight,
                               );
+                              await StorageService().saveUserLoggedInStatus("true"); //스토리지에 로그인 정보 저장
+                              await StorageService().saveUserName(_userName); //스토리지에 닉네임 저장
+                              await StorageService().saveUserEmail(_newUser.user!.email!); //스토리지에 이메일 저장
+                              await StorageService().saveUserID(_newUser.user!.uid); //스토리지에 파이어베이스 id 저장
                               Navigator.pushNamed(context, "/toNavigationBarPage"); //메인 페이지 이동
                             }catch(e){
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar( //에러 메시지
                                 content: Text(
                                   "이미 존재하는 닉네임입니다.",
                                   style: TextStyle(

@@ -2,8 +2,12 @@
  * 로그인 페이지입니다.             *
  *******************************/
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dorun_dorun/utilities/firebaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../utilities/storageService.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -112,10 +116,17 @@ class _SignInPageState extends State<SignInPage> {
                           FocusScope.of(context).unfocus();
                           if(_tryValidation()){ //로그인 형식 확인
                             try{
+                              QuerySnapshot snapshot = await FirebaseService(
+                                  uid: FirebaseAuth.instance.currentUser!.uid)
+                                  .getUserData(_userEmail); //유저 데이터 이메일로 받이오기
                               final newUser =
                                   await _authentication.signInWithEmailAndPassword(
                                   email: _userEmail, password: _userPassword); //파이어베이스 계정 확인
                               if(newUser.user != null){
+                                await StorageService().saveUserLoggedInStatus("true"); //스토리지에 로그인 정보 저장
+                                await StorageService().saveUserName(snapshot.docs[0]['fullName']); //스토리지에 닉네임 저장
+                                await StorageService().saveUserEmail(_userEmail); //스토리지에 이메일 저장
+                                await StorageService().saveUserID(snapshot.docs[0]['id']); //스토리지에 파이어베이스 id 저장
                                 Navigator.pushNamed(context, "/toNavigationBarPage"); //로그인
                               }
                             }catch(e){ //에러 메시지
