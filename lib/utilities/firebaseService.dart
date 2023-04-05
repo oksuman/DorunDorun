@@ -36,33 +36,30 @@ class FirebaseService{
     return snapshot;
   }
 
-  //친구 요청
-  Future requestFriend() async {
+  //빠른 친구 요청
+  Future fRequestFriend(String uemail, String ufn, String femail, String ffn) async {
     //자신의 유저 다큐멘트 안에 friend 컬렉션 생성
     final DocumentReference userDocument = _userCollection.doc(uid);
     final CollectionReference friendsCollection = userDocument.collection("friends");
     final DocumentReference friendsDocument = friendsCollection.doc(fid);
-    final DocumentSnapshot userSnapshot = await userDocument.get();
+
+    //자신의 friend 컬렉션 안에 다큐멘트 추가(accepted: false -> 수락시 true로 바뀜)
+    await friendsDocument.set({
+      "id": fid,
+      "email": femail,
+      "fullName": ffn,
+      "accepted": false,
+    });
 
     //상대방의  다큐멘트 안에 waiting 컬렉션 생성
     final DocumentReference user2Document = _userCollection.doc(fid);
     final CollectionReference waitingCollection = user2Document.collection("waiting");
     final DocumentReference waitingDocument = waitingCollection.doc(uid);
-    final DocumentSnapshot user2Snapshot = await user2Document.get();
-
-    //자신의 friend 컬렉션 안에 다큐멘트 추가(accepted: false -> 수락시 true로 바뀜)
-    await friendsDocument.set({
-      "id": fid,
-      "email": user2Snapshot.get("email"),
-      "fullName": user2Snapshot.get("fullName"),
-      "accepted": false,
-    });
-
     //상대방의 waiting 컬렉션 안에 자신 추가
     await waitingDocument.set({
       "id": uid,
-      "email": userSnapshot.get("email"),
-      "fullName": userSnapshot.get("fullName"),
+      "email": uemail,
+      "fullName": ufn,
     });
   }
 
@@ -74,18 +71,19 @@ class FirebaseService{
     final CollectionReference waitingCollection = userDocument.collection("waiting");
     final DocumentReference friendsDocument = friendsCollection.doc(fid);
     final DocumentReference waitingDocument = waitingCollection.doc(fid);
-    final DocumentSnapshot userSnapshot = await userDocument.get();
+    if(isAccepted) { //수락 시(반응속도 높이기 위해 앞으로 끌어다 둠)
+      //자신의 waiting 다큐멘트 삭제
+      await waitingDocument.delete();
+    }
 
     //상대방의 = friend, waiting 컬렉션
     final DocumentReference user2Document = _userCollection.doc(fid);
     final CollectionReference friends2Collection = user2Document.collection("friends");
-    final CollectionReference waiting2Collection = user2Document.collection("waiting");
     final DocumentReference friends2Document = friends2Collection.doc(uid);
-    final DocumentReference waiting2Document = waiting2Collection.doc(uid);
-    final DocumentSnapshot user2Snapshot = await user2Document.get();
-
 
     if(isAccepted){ //수락 시
+      final DocumentSnapshot userSnapshot = await userDocument.get();
+      final DocumentSnapshot user2Snapshot = await user2Document.get();
       //자신의 friend 다큐멘트 생성(accepted: true)
       await friendsDocument.set({
         "id": fid,
@@ -100,31 +98,27 @@ class FirebaseService{
         "fullName": userSnapshot.get("fullName"),
         "accepted": true,
       });
-      //자신의 waiting 다큐멘트 삭제
-      await waitingDocument.delete();
     }else{ //거절 시
       //자신의 waiting 다큐멘트 삭제
       await waitingDocument.delete();
       //상대방의 friend 다큐멘트 삭제
       await friends2Document.delete();
     }
-
   }
 
   //친구 삭제
   Future finishFriend() async {
+    //자신과 상대방의 friend 다큐멘트 삭제
     //자신의 friend 컬렉션
     final DocumentReference userDocument = _userCollection.doc(uid);
     final CollectionReference friendsCollection = userDocument.collection("friends");
     final DocumentReference friendsDocument = friendsCollection.doc(fid);
+    await friendsDocument.delete();
 
     //상대방의 friend 컬렉션
     final DocumentReference user2Document = _userCollection.doc(fid);
     final CollectionReference friends2Collection = user2Document.collection("friends");
     final DocumentReference friends2Document = friends2Collection.doc(uid);
-
-    //자신과 상대방의 friend 다큐멘트 삭제
-    await friendsDocument.delete();
     await friends2Document.delete();
   }
 }

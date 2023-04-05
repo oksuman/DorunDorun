@@ -2,6 +2,7 @@
  * 친구를 추가할 수 있는 페이지입니다.*
  *****************************/
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,155 +19,120 @@ class FindFriendPage extends StatefulWidget {
 
 class _FindFriendPageState extends State<FindFriendPage> {
   final CollectionReference _userCollection =
-    FirebaseFirestore.instance.collection("users"); //유저 컬렉션
-  List<Map<String, dynamic>> _allUserData = []; //모든 유저 데이터
-  List<List<String>> _searchedList = []; //검색된 리스트
-  List<List<String>> _friendList = []; //친구 리스트
-  List<List<String>> _waitingList = []; //보낸 수락 대기 리스트
-  List<List<String>> _myWaitList = []; //내가 수락 대기 리스트
+      FirebaseFirestore.instance.collection("users"); //유저 컬렉션
+  final currentUser = FirebaseAuth.instance;
+  List<Map<String, dynamic>> _allWaitingData = []; //waiting 컬렉션 데이터
+  List<Map<String, dynamic>> _allFriendsData = []; //friends 컬렉션 데이터
+
+  List<String> _acceptedFList = []; //초대받은 친구 리스트
+  List<String> _nAcceptedFList = []; //초대 아직 안 받은 친구 리스트
+  List<String> _waitingList = []; //내가 수락 대기 리스트
   String _uid = "";
+  String _uemail = "";
+  String _uname = "";
+  String _typedName = "";
 
   //스토리지에서 id 받아오기
-  _getMyID() async {
+  _getMyData() async {
     await StorageService().getUserID().then((value) {
       setState(() {
         _uid = value!;
       });
     });
+    await StorageService().getUserEmail().then((value) {
+      setState(() {
+        _uemail = value!;
+      });
+    });
+    await StorageService().getUserName().then((value) {
+      setState(() {
+        _uname = value!;
+      });
+    });
   }
 
-  //모든 유저 데이터 받아오기
-  _getAllUsers() async{
-    QuerySnapshot querySnapshot
-    = await _userCollection.get();
-    _allUserData
-    = querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-  }
 
-  //친구목록, 대기목록 받아오기
-  _getAllFriendList() async {
-    //friend 컬렉션
+  _getFriendList(){
     final DocumentReference userDocument = _userCollection.doc(_uid);
     final CollectionReference friendsCollection =
-      userDocument.collection("friends");
-    QuerySnapshot querySnapshot = await friendsCollection.get();
-    List<Map<String, dynamic>> _allFriendsData = querySnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
-    List<List<String>> tempfList = [];
-    List<List<String>> tempwList = [];
-    for (int i = 0; i < _allFriendsData.length; i++) { //모든 friend 다큐멘트 확인
+    userDocument.collection("friends");
+    friendsCollection.snapshots().listen((event) {
+      _allFriendsData = event.docs.map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    });
+    List<String> tempAList = [];
+    List<String> tempNAList = [];
+    for (int i = 0; i < _allFriendsData.length; i++) {
+      //모든 friend 다큐멘트 확인
       bool isAccepted = _allFriendsData[i]["accepted"];
-      String tempName = _allFriendsData[i]["fullName"];
-      String tempEmail = _allFriendsData[i]["email"];
-      String tempID = _allFriendsData[i]["id"];
-      List<String> tempElement = [tempName, tempEmail, tempID];
-      if (isAccepted) { //수락 됐을 시
-        tempfList.add(tempElement); //친구리스트 추가
-      }else{ //수락 아직 안 됐을 시
-        tempwList.add(tempElement); //대기리스트 추가
+      if (isAccepted) {
+        //수락 됐을 시
+        tempAList.add(_allFriendsData[i]["fullName"]); //친구리스트 추가
+      } else {
+        //수락 아직 안 됐을 시
+        tempNAList.add(_allFriendsData[i]["fullName"]); //대기리스트 추가
       }
     }
-    _friendList.clear();
-    _waitingList.clear();
-    _friendList = tempfList;
-    _waitingList = tempwList;
-    print(_friendList);
-    print(_waitingList);
-    setState(() {});
+    _acceptedFList.clear();
+    _nAcceptedFList.clear();
+    _acceptedFList = tempAList;
+    _nAcceptedFList = tempNAList;
   }
 
-  _getMyWaitList() async {
-    //자신의 waiting 컬렉션 받아오기
+  _getWaitingList(){
     final DocumentReference userDocument = _userCollection.doc(_uid);
     final CollectionReference waitingCollection =
     userDocument.collection("waiting");
-    QuerySnapshot querySnapshot = await waitingCollection.get();
-
-    List<Map<String, dynamic>> waitingData = querySnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
-    List<List<String>> tempList = [];
-    for (int i = 0; i < waitingData.length; i++) { //자신의 waiting 다큐멘트 모두 저장
-      String tempName = waitingData[i]["fullName"];
-      String tempEmail = waitingData[i]["email"];
-      String tempID = waitingData[i]["id"];
-      List<String> tempElement = [tempName, tempEmail, tempID];
-      tempList.add(tempElement);
+    waitingCollection.snapshots().listen((event) {
+      _allWaitingData = event.docs.map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    });
+    List<String> tempWList = [];
+    for (int i = 0; i < _allWaitingData.length; i++) {
+      //자신의 waiting 다큐멘트 모두 저장
+      tempWList.add(_allWaitingData[i]["fullName"]);
     }
-    _myWaitList.clear();
-    _myWaitList = tempList; //waiting 라스트에 모두 저장
-    setState(() {});
+    _waitingList.clear();
+    _waitingList = tempWList; //waiting 라스트에 모두 저장
   }
 
-  //검색 리스트 갱신
-  _updateNameList(String searchName) async {
-    List<List<String>> tempList = [];
-    for(int i=0; i<_allUserData.length; i++){
-      String tempName = _allUserData[i]["fullName"];
-      String tempEmail = _allUserData[i]["email"];
-      String tempID = _allUserData[i]["id"];
-      List<String> tempElement = [tempName, tempEmail, tempID];
-      //중복 닉네임 & 자신의 ID & 이미 친구 목록인지 & 대기 목록인지 확인
-      if(_checkSimilarName(tempName, searchName)
-          && tempID!=_uid
-          && !(_checkElementContain(_friendList,tempElement))
-          && !(_checkElementContain(_myWaitList,tempElement))
-      ){
-        tempList.add(tempElement);
-      }
-    }
-    _searchedList.clear();
-    _searchedList = tempList;
+  bool _isinSearchList(String fullName, String id) {
+    if (_checkSimilarName(fullName, _typedName) &&
+        id != _uid &&
+        !(_acceptedFList.contains(fullName)) &&
+        !(_waitingList.contains(fullName)))
+      return true;
+    else
+      return false;
   }
 
   //이름 유사성 확인
-  bool _checkSimilarName(String search, String typed){
+  bool _checkSimilarName(String search, String typed) {
     //입력 값이 찾는 값보다 많으면 다름
-    if(typed.length>search.length)
-      return false;
+    if (typed.length > search.length) return false;
     //입력 값이 0이면 다름
-    if (typed.length==0){
+    if (typed.length == 0) {
       return false;
     }
     //유사도 확인
-    for(int i = 0; i<typed.length; i++){
-      if(typed[i]!=search[i]){
+    for (int i = 0; i < typed.length; i++) {
+      if (typed[i] != search[i]) {
         return false;
       }
     }
     return true;
   }
 
-  //리스토 속 요소 포함 여부 확인
-  bool _checkElementContain(List<List<String>> checkList, List<String> element){
-    bool isContaining = false;
-    checkList.forEach((e) {
-      if(listEquals(e, element)){
-        isContaining = true;
-      }
-    });
-    return isContaining;
-  }
-
-  //스크린 업데이트
-  _updateScreen() async{
-    _getMyWaitList(); //모든 유저 데이터 받기
-    setState(() {});
-  }
-
   @override
   //초기화
   void initState() {
     super.initState();
-    _getMyID(); //자신의 uid 받기
-    _getAllUsers(); //모든 유저 데이터 받기
+    _getMyData(); //자신의 uid 받기
   }
 
   @override
   Widget build(BuildContext context) {
-    _updateScreen();
-    List<bool> isWaitingList = [];
+
     return Scaffold(
       appBar: AppBar(
         // 앱 상단 바
@@ -187,66 +153,95 @@ class _FindFriendPageState extends State<FindFriendPage> {
             children: [
               Form(
                 child: TextFormField(
-                  onTap: (){
+                  onTap: () {
                     setState(() {
-                      _getMyWaitList(); //모든 유저 데이터 받기
-                      _getAllFriendList(); //친구,대기 목록 받기
                     });
                   },
-                  onChanged: (value) async { //텍스트 필드 값 바뀔 시
+                  onChanged: (value) async {
+                    //텍스트 필드 값 바뀔 시
                     setState(() {
-                      _updateNameList(value); //검색 리스트 업데이트
+                      _typedName = value;
                     });
                   },
                   onSaved: (value) async {
                     setState(() {
-                      _updateNameList(value!);
+                      _typedName = value!;
                     });
                   },
                 ),
               ),
-              _searchedList.isEmpty
-                  ? Container()
-                  : Container(
-                      height: 500,
-                      child: ListView.builder( //검색리스트 보이기
-                        itemCount: _searchedList.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          bool isWaiting = false; //수락 대기중인지
-                          _waitingList.forEach((element) { //수락 대기 목록 중 대기중인 index 확인
-                            if(listEquals(_searchedList[index],element))
-                              isWaiting = true;
-                          });
-                          isWaitingList.add(isWaiting); //대기중인 index 저장
-
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
+              Container(
+                height: 500,
+                child: StreamBuilder(
+                    stream: _userCollection.snapshots(),
+                    builder: (context,
+                        AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+                      if(streamSnapshot.hasData){
+                        return ListView.builder(
+                          //검색리스트 보이기
+                          itemCount: streamSnapshot.data!.docs.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            _getFriendList(); //친구목록 받아오기
+                            _getWaitingList(); //대기목록 받아오기
+                            List<bool> isPressedList = []; //대기중 버튼 리스트
+                            for(int i = 0; i<streamSnapshot.data!.docs.length; i++){
+                              if(_nAcceptedFList.contains(
+                                  streamSnapshot.data!.docs[i]['fullName']))
+                                isPressedList.add(true);
+                              else
+                                isPressedList.add(false);
+                            } //대기중 버튼 리스트 갱신
+                            final DocumentSnapshot documentSnapshot =
+                              streamSnapshot.data!.docs[index];
+                            if (_isinSearchList(
+                                documentSnapshot['fullName'],
+                                documentSnapshot['id'])) {
+                              return Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(_searchedList[index][0]), //이름
-                                  Text(_searchedList[index][1]), //이메일
+                                  Column(
+                                    children: [
+                                      Text(documentSnapshot[
+                                      'fullName']), //이름
+                                      Text(documentSnapshot['email']), //이메일
+                                    ],
+                                  ),
+                                  ElevatedButton(
+                                      onPressed: () async {
+                                        if (!_nAcceptedFList.contains(
+                                            documentSnapshot['fullName'])) {
+                                          //대기 중이지 않으면,
+                                          setState(() {
+                                            isPressedList[index]=true;
+                                            _nAcceptedFList.add(documentSnapshot['fullName']);
+                                          });//바로 버튼 변경
+                                          await FirebaseService(
+                                              uid: _uid,
+                                              fid: documentSnapshot[
+                                              'id'])
+                                              .fRequestFriend(
+                                              _uemail,
+                                              _uname,
+                                              documentSnapshot['email'],
+                                              documentSnapshot['fullName']
+                                          ); //파이어베이스 친구 요청(속도 높이기 위해 매개변수 전달)
+                                        }
+                                      },
+                                      child: (isPressedList[index])
+                                          ? Text("대기중")
+                                          : Text("+"))
                                 ],
-                              ),
-                              ElevatedButton(
-                                  onPressed: () async {
-                                    if(!isWaiting){ //대기 중이지 않으면,
-                                      setState(() {
-                                        _waitingList.add(_searchedList[index]);
-                                      });
-                                      await FirebaseService(
-                                          uid: _uid,
-                                          fid: _searchedList[index][2])
-                                          .requestFriend(); //파이어베이스 친구 요청
-                                    }
-
-                                  },
-                                  child: (isWaitingList[index])?Text("대기중"):Text("+"))
-                            ],
-                          );
-                        },
-                      ),
-                    )
+                              );
+                            }else{
+                              return Container();
+                            }
+                          },
+                        );
+                      }
+                      return Center(child: CircularProgressIndicator());
+                    }),
+              )
             ],
           ),
         ),
