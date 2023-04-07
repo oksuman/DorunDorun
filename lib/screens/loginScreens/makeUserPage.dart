@@ -265,6 +265,7 @@ class _MakeUserPageState extends State<MakeUserPage> {
                               await StorageService().saveUserName(_userName); //스토리지에 닉네임 저장
                               await StorageService().saveUserEmail(_newUser.user!.email!); //스토리지에 이메일 저장
                               await StorageService().saveUserID(_newUser.user!.uid); //스토리지에 파이어베이스 id 저장
+                              await StorageService().saveUserGroup(""); //스토리지에 joined group 저장
                               Navigator.pushNamed(context, "/toNavigationBarPage"); //메인 페이지 이동
                             }catch(e){
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar( //에러 메시지

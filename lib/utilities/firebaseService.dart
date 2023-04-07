@@ -12,6 +12,9 @@ class FirebaseService{
   final CollectionReference _userCollection =
     FirebaseFirestore.instance.collection("users"); //유저 컬렉션
 
+  final CollectionReference _groupCollection =
+    FirebaseFirestore.instance.collection("groups"); //그룹 컬렉션
+
   //유저 정보 데이터 저장
   Future savingUserData(String email, String fullName, String gender, String age, String height, String weight) async {
     //유저컬렉션에 (uid, 이메일, 닉네임, 성별, 나이, 키, 몸무게, 코인) 저장
@@ -25,6 +28,8 @@ class FirebaseService{
       "height": height,
       "weight": weight,
       "coins": 0,
+      "group": "",
+      "avatarId": (gender=="남자")?0:1,
     });
   }
 
@@ -120,5 +125,23 @@ class FirebaseService{
     final CollectionReference friends2Collection = user2Document.collection("friends");
     final DocumentReference friends2Document = friends2Collection.doc(uid);
     await friends2Document.delete();
+  }
+
+  Future<String?> createGroup() async {
+    DocumentReference groupDocument = await _groupCollection.add({
+      "adminId": uid,
+      "membersId": [],
+      "groupId": "",
+    });
+    //멤버에 자신 추가
+    await groupDocument.update({
+      "membersId": FieldValue.arrayUnion([uid]),
+      "groupId": groupDocument.id,
+    });
+    DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "group": groupDocument.id,
+    });
+    return groupDocument.id;
   }
 }

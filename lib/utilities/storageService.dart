@@ -10,6 +10,7 @@ class StorageService {
   static String _userNameKey = "USERNAMEKEY";
   static String _userEmailKey = "USEREMAILKEY";
   static String _userIDKey = "USERIDKEY";
+  static String _userGroupKey = "USERGROUPKEY";
 
   //스토리지 객체
   final _storage = new FlutterSecureStorage();
@@ -35,6 +36,11 @@ class StorageService {
     return await _storage.write(key: _userIDKey, value: userID);
   }
 
+  //유저 joined group 저장
+  Future saveUserGroup(String userGroup) async {
+    return await _storage.write(key: _userGroupKey, value: userGroup);
+  }
+
   //스토리지로부터 데이터 받아오기
   //로그인 상태 받아오기
   Future<String?> getUserLoggedInStatus() async {
@@ -54,6 +60,11 @@ class StorageService {
   //유저 파이어베이스 id 받아오기
   Future<String?> getUserID() async {
     return _storage.read(key: _userIDKey);
+  }
+
+  //유저 joined group 받아오기
+  Future<String?> getUserGroup() async {
+    return _storage.read(key: _userGroupKey);
   }
 
 }

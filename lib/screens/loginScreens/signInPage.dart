@@ -127,6 +127,7 @@ class _SignInPageState extends State<SignInPage> {
                                 await StorageService().saveUserName(snapshot.docs[0]['fullName']); //스토리지에 닉네임 저장
                                 await StorageService().saveUserEmail(_userEmail); //스토리지에 이메일 저장
                                 await StorageService().saveUserID(snapshot.docs[0]['id']); //스토리지에 파이어베이스 id 저장
+                                await StorageService().saveUserGroup(snapshot.docs[0]['group']); //스토리지에 joined group 저장
                                 Navigator.pushNamed(context, "/toNavigationBarPage"); //로그인
                               }
                             }catch(e){ //에러 메시지
