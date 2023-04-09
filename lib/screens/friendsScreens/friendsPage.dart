@@ -44,152 +44,147 @@ class _FriendsPageState extends State<FriendsPage> {
         centerTitle: true,
       ),
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _leftClicked = true; //친구 목록 보이기
-                      });
-                    },
-                    child: Text(
-                      "친구 관리",
-                      style: _leftClicked
-                          ? TextStyle(
-                              color: Colors.green, fontWeight: FontWeight.bold)
-                          : TextStyle(color: Colors.grey),
-                    ),
+      body: Center(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _leftClicked = true; //친구 목록 보이기
+                    });
+                  },
+                  child: Text(
+                    "친구 관리",
+                    style: _leftClicked
+                        ? TextStyle(
+                            color: Colors.green, fontWeight: FontWeight.bold)
+                        : TextStyle(color: Colors.grey),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _leftClicked = false; //대기 목록 보이기
-                      });
-                    },
-                    child: Text(
-                      "친구 대기",
-                      style: _leftClicked
-                          ? TextStyle(color: Colors.grey)
-                          : TextStyle(
-                              color: Colors.green, fontWeight: FontWeight.bold),
-                    ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _leftClicked = false; //대기 목록 보이기
+                    });
+                  },
+                  child: Text(
+                    "친구 대기",
+                    style: _leftClicked
+                        ? TextStyle(color: Colors.grey)
+                        : TextStyle(
+                            color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
+                )
+              ],
+            ),
+            (_leftClicked) //친구 목록 or 대기목록
+                ? Expanded(
+                    child: StreamBuilder(
+                        stream: _userCollection
+                            .doc(currentUser.currentUser!.uid)
+                            .collection("friends")
+                            .where('accepted', isEqualTo: true)
+                            .snapshots(),
+                        builder: (context,
+                            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+                          if (streamSnapshot.hasData) {
+                            return ListView.builder(
+                              //친구목록 보이기
+                              itemCount: streamSnapshot.data!.docs.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final DocumentSnapshot documentSnapshot =
+                                    streamSnapshot.data!.docs[index];
+                                return Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text(documentSnapshot[
+                                            'fullName']), //닉네임
+                                        Text(documentSnapshot['email']), //이메일
+                                      ],
+                                    ),
+                                    ElevatedButton(
+                                      //친구 끝내기
+                                      onPressed: () async {
+                                        await FirebaseService(
+                                                uid: currentUser.currentUser!.uid,
+                                                fid: documentSnapshot['id'])
+                                            .finishFriend(); //친구 삭제
+                                      },
+                                      child: Text("X"),
+                                    )
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                          return Center(child: CircularProgressIndicator());
+                        }),
                   )
-                ],
-              ),
-              (_leftClicked) //친구 목록 or 대기목록
-                  ? Container(
-                      height: 500,
-                      color: Colors.cyan,
-                      child: StreamBuilder(
-                          stream: _userCollection
-                              .doc(currentUser.currentUser!.uid)
-                              .collection("friends")
-                              .where('accepted', isEqualTo: true)
-                              .snapshots(),
-                          builder: (context,
-                              AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-                            if (streamSnapshot.hasData) {
-                              return ListView.builder(
-                                //친구목록 보이기
-                                itemCount: streamSnapshot.data!.docs.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final DocumentSnapshot documentSnapshot =
-                                      streamSnapshot.data!.docs[index];
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(documentSnapshot[
-                                              'fullName']), //닉네임
-                                          Text(documentSnapshot['email']), //이메일
-                                        ],
-                                      ),
-                                      ElevatedButton(
-                                        //친구 끝내기
-                                        onPressed: () async {
-                                          await FirebaseService(
-                                                  uid: currentUser.currentUser!.uid,
-                                                  fid: documentSnapshot['id'])
-                                              .finishFriend(); //친구 삭제
-                                        },
-                                        child: Text("X"),
-                                      )
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-                            return Center(child: CircularProgressIndicator());
-                          }),
-                    )
-                  : Container(
-                      height: 500,
-                      child: StreamBuilder(
-                          stream: _userCollection
-                              .doc(currentUser.currentUser!.uid)
-                              .collection("waiting")
-                              .snapshots(),
-                          builder: (context,
-                              AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-                            if (streamSnapshot.hasData) {
-                              return ListView.builder(
-                                //수락 리스트 보이기
-                                itemCount: streamSnapshot.data!.docs.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final DocumentSnapshot documentSnapshot =
-                                      streamSnapshot.data!.docs[index];
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(documentSnapshot['fullName']),
-                                          Text(documentSnapshot['email']),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          ElevatedButton(
-                                              //수락 거절 버튼
-                                              onPressed: () async {
-                                                await FirebaseService(
-                                                        uid: currentUser.currentUser!.uid,
-                                                        fid: documentSnapshot[
-                                                            'id'])
-                                                    .acceptFriend(
-                                                        false); //친구 거절
-                                              },
-                                              child: Text("x")),
-                                          ElevatedButton(
-                                              //수락 승인 버튼
-                                              onPressed: () async {
-                                                await FirebaseService(
-                                                        uid: currentUser.currentUser!.uid,
-                                                        fid: documentSnapshot[
-                                                            'id'])
-                                                    .acceptFriend(true); //친구 수락
-                                              },
-                                              child: Text("+"))
-                                        ],
-                                      )
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-                            return Center(child: CircularProgressIndicator());
-                          }),
-                    )
-            ],
-          ),
+                : Expanded(
+                    child: StreamBuilder(
+                        stream: _userCollection
+                            .doc(currentUser.currentUser!.uid)
+                            .collection("waiting")
+                            .snapshots(),
+                        builder: (context,
+                            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+                          if (streamSnapshot.hasData) {
+                            return ListView.builder(
+                              //수락 리스트 보이기
+                              itemCount: streamSnapshot.data!.docs.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final DocumentSnapshot documentSnapshot =
+                                    streamSnapshot.data!.docs[index];
+                                return Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text(documentSnapshot['fullName']),
+                                        Text(documentSnapshot['email']),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        ElevatedButton(
+                                            //수락 거절 버튼
+                                            onPressed: () async {
+                                              await FirebaseService(
+                                                      uid: currentUser.currentUser!.uid,
+                                                      fid: documentSnapshot[
+                                                          'id'])
+                                                  .acceptFriend(
+                                                      false); //친구 거절
+                                            },
+                                            child: Text("x")),
+                                        ElevatedButton(
+                                            //수락 승인 버튼
+                                            onPressed: () async {
+                                              await FirebaseService(
+                                                      uid: currentUser.currentUser!.uid,
+                                                      fid: documentSnapshot[
+                                                          'id'])
+                                                  .acceptFriend(true); //친구 수락
+                                            },
+                                            child: Text("+"))
+                                      ],
+                                    )
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                          return Center(child: CircularProgressIndicator());
+                        }),
+                  )
+          ],
         ),
       ),
     );

@@ -2,6 +2,8 @@
  * 친구를 추가할 수 있는 페이지입니다.*
  *****************************/
 
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +34,9 @@ class _FindFriendPageState extends State<FindFriendPage> {
   String _uname = "";
   String _typedName = "";
 
+  StreamSubscription? _friendListen = null; //친구 목록 스트림 구독(종료시 끊음)
+  StreamSubscription? _waitingListen = null; //대기 목록 스트림 구독(종료시 끊음)
+
   //스토리지에서 id 받아오기
   _getMyData() async {
     await StorageService().getUserID().then((value) {
@@ -56,7 +61,7 @@ class _FindFriendPageState extends State<FindFriendPage> {
     final DocumentReference userDocument = _userCollection.doc(_uid);
     final CollectionReference friendsCollection =
     userDocument.collection("friends");
-    friendsCollection.snapshots().listen((event) {
+    _friendListen = friendsCollection.snapshots().listen((event) {
       _allFriendsData = event.docs.map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
     });
@@ -83,7 +88,7 @@ class _FindFriendPageState extends State<FindFriendPage> {
     final DocumentReference userDocument = _userCollection.doc(_uid);
     final CollectionReference waitingCollection =
     userDocument.collection("waiting");
-    waitingCollection.snapshots().listen((event) {
+    _waitingListen = waitingCollection.snapshots().listen((event) {
       _allWaitingData = event.docs.map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
     });
@@ -96,6 +101,7 @@ class _FindFriendPageState extends State<FindFriendPage> {
     _waitingList = tempWList; //waiting 라스트에 모두 저장
   }
 
+  //검색 목록 대상 여부
   bool _isinSearchList(String fullName, String id) {
     if (_checkSimilarName(fullName, _typedName) &&
         id != _uid &&
@@ -131,8 +137,19 @@ class _FindFriendPageState extends State<FindFriendPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  //종료 시
+  void dispose() {
+    super.dispose();
+    try{
+      _friendListen!.cancel(); //친구 목록 스트림 구독 끊음(최적화)
+      _waitingListen!.cancel(); //대기 목록 스트림 구독 끊음(최적화)
+    }catch(e){
+      print("스트림이 닫히지 않았습니다.");
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         // 앱 상단 바
@@ -147,103 +164,100 @@ class _FindFriendPageState extends State<FindFriendPage> {
         centerTitle: true,
       ),
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              Form(
-                child: TextFormField(
-                  onTap: () {
-                    setState(() {
-                    });
-                  },
-                  onChanged: (value) async {
-                    //텍스트 필드 값 바뀔 시
-                    setState(() {
-                      _typedName = value;
-                    });
-                  },
-                  onSaved: (value) async {
-                    setState(() {
-                      _typedName = value!;
-                    });
-                  },
-                ),
+      body: Center(
+        child: Column(
+          children: [
+            Form(
+              child: TextFormField(
+                onTap: () {
+                  setState(() {
+                  });
+                },
+                onChanged: (value) async {
+                  //텍스트 필드 값 바뀔 시
+                  setState(() {
+                    _typedName = value;
+                  });
+                },
+                onSaved: (value) async {
+                  setState(() {
+                    _typedName = value!;
+                  });
+                },
               ),
-              Container(
-                height: 500,
-                child: StreamBuilder(
-                    stream: _userCollection.snapshots(),
-                    builder: (context,
-                        AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-                      if(streamSnapshot.hasData){
-                        return ListView.builder(
-                          //검색리스트 보이기
-                          itemCount: streamSnapshot.data!.docs.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            _getFriendList(); //친구목록 받아오기
-                            _getWaitingList(); //대기목록 받아오기
-                            List<bool> isPressedList = []; //대기중 버튼 리스트
-                            for(int i = 0; i<streamSnapshot.data!.docs.length; i++){
-                              if(_nAcceptedFList.contains(
-                                  streamSnapshot.data!.docs[i]['fullName']))
-                                isPressedList.add(true);
-                              else
-                                isPressedList.add(false);
-                            } //대기중 버튼 리스트 갱신
-                            final DocumentSnapshot documentSnapshot =
-                              streamSnapshot.data!.docs[index];
-                            if (_isinSearchList(
-                                documentSnapshot['fullName'],
-                                documentSnapshot['id'])) {
-                              return Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Text(documentSnapshot[
-                                      'fullName']), //이름
-                                      Text(documentSnapshot['email']), //이메일
-                                    ],
-                                  ),
-                                  ElevatedButton(
-                                      onPressed: () async {
-                                        if (!_nAcceptedFList.contains(
-                                            documentSnapshot['fullName'])) {
-                                          //대기 중이지 않으면,
-                                          setState(() {
-                                            isPressedList[index]=true;
-                                            _nAcceptedFList.add(documentSnapshot['fullName']);
-                                          });//바로 버튼 변경
-                                          await FirebaseService(
-                                              uid: _uid,
-                                              fid: documentSnapshot[
-                                              'id'])
-                                              .fRequestFriend(
-                                              _uemail,
-                                              _uname,
-                                              documentSnapshot['email'],
-                                              documentSnapshot['fullName']
-                                          ); //파이어베이스 친구 요청(속도 높이기 위해 매개변수 전달)
-                                        }
-                                      },
-                                      child: (isPressedList[index])
-                                          ? Text("대기중")
-                                          : Text("+"))
-                                ],
-                              );
-                            }else{
-                              return Container();
-                            }
-                          },
-                        );
-                      }
-                      return Center(child: CircularProgressIndicator());
-                    }),
-              )
-            ],
-          ),
+            ),
+            Expanded(
+              child: StreamBuilder(
+                  stream: _userCollection.snapshots(),
+                  builder: (context,
+                      AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+                    if(streamSnapshot.hasData){
+                      return ListView.builder(
+                        //검색리스트 보이기
+                        itemCount: streamSnapshot.data!.docs.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          _getFriendList(); //친구목록 받아오기
+                          _getWaitingList(); //대기목록 받아오기
+                          List<bool> isPressedList = []; //대기중 버튼 리스트
+                          for(int i = 0; i<streamSnapshot.data!.docs.length; i++){
+                            if(_nAcceptedFList.contains(
+                                streamSnapshot.data!.docs[i]['fullName']))
+                              isPressedList.add(true);
+                            else
+                              isPressedList.add(false);
+                          } //대기중 버튼 리스트 갱신
+                          final DocumentSnapshot documentSnapshot =
+                            streamSnapshot.data!.docs[index];
+                          if (_isinSearchList(
+                              documentSnapshot['fullName'],
+                              documentSnapshot['id'])) {
+                            return Row(
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text(documentSnapshot[
+                                    'fullName']), //이름
+                                    Text(documentSnapshot['email']), //이메일
+                                  ],
+                                ),
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      if (!_nAcceptedFList.contains(
+                                          documentSnapshot['fullName'])) {
+                                        //대기 중이지 않으면,
+                                        setState(() {
+                                          isPressedList[index]=true;
+                                          _nAcceptedFList.add(documentSnapshot['fullName']);
+                                        });//바로 버튼 변경
+                                        await FirebaseService(
+                                            uid: _uid,
+                                            fid: documentSnapshot[
+                                            'id'])
+                                            .fRequestFriend(
+                                            _uemail,
+                                            _uname,
+                                            documentSnapshot['email'],
+                                            documentSnapshot['fullName']
+                                        ); //파이어베이스 친구 요청(속도 높이기 위해 매개변수 전달)
+                                      }
+                                    },
+                                    child: (isPressedList[index])
+                                        ? Text("대기중")
+                                        : Text("+"))
+                              ],
+                            );
+                          }else{
+                            return Container();
+                          }
+                        },
+                      );
+                    }
+                    return Center(child: CircularProgressIndicator());
+                  }),
+            )
+          ],
         ),
       ),
     );

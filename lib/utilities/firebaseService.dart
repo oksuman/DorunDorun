@@ -7,7 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirebaseService{
   final String? uid; //자신의 id (user id)
   final String? fid; //상대방의 id (friend id)
-  FirebaseService({this.uid, this.fid}); //argument로 받아오기
+  final String? gid; //그룹 id (friend id)
+  FirebaseService({this.uid, this.fid, this.gid}); //argument로 받아오기
 
   final CollectionReference _userCollection =
     FirebaseFirestore.instance.collection("users"); //유저 컬렉션
@@ -30,6 +31,7 @@ class FirebaseService{
       "coins": 0,
       "group": "",
       "avatarId": (gender=="남자")?0:1,
+      "isKicked": false
     });
   }
 
@@ -127,21 +129,154 @@ class FirebaseService{
     await friends2Document.delete();
   }
 
-  Future<String?> createGroup() async {
+  //그룹 생성
+  Future<String?> createGroup(String adminName) async {
     DocumentReference groupDocument = await _groupCollection.add({
       "adminId": uid,
+      "adminName": adminName,
       "membersId": [],
+      "membersName": [],
       "groupId": "",
+      "membersNum" : 1
     });
     //멤버에 자신 추가
     await groupDocument.update({
       "membersId": FieldValue.arrayUnion([uid]),
+      "membersName": FieldValue.arrayUnion([adminName]),
       "groupId": groupDocument.id,
     });
+    //내가 속한 그룹 업데이트
     DocumentReference userDocument = _userCollection.doc(uid);
     await userDocument.update({
       "group": groupDocument.id,
     });
-    return groupDocument.id;
+    return groupDocument.id; //새로 생성된 그룹 아이디 반환
+  }
+
+  //친구 초대
+  Future inviteFriend(String senderName) async {
+    final DocumentReference user2Document = _userCollection.doc(fid);
+    final CollectionReference inviteCollection = user2Document.collection("invite");
+    //유저 컬렉션 속 invite 컬렉션 추가
+    DocumentReference inviteDocument = await inviteCollection.add({
+      "inviteId": "",
+      "groupId": gid,
+      "senderId": uid,
+      "senderName": senderName
+    });
+    await inviteDocument.update({
+      "inviteId": inviteDocument.id,
+    });
+  }
+
+  //그룹 인원 받기
+  Future<int> getGroupNum() async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    final DocumentSnapshot groupSnapshot = await groupDocument.get();
+    return groupSnapshot.get("membersNum");
+  }
+
+  //유저 상태 초기화
+  Future resetUserState() async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "group": "", //속한 그룹 없음
+      "isKicked": false, //추방 여부 false
+    });
+  }
+
+  //초대 수락
+  Future joinInvite(String uname, String inviteId) async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    //그룹 다큐멘트 업데이트
+    await groupDocument.update({
+      "membersId": FieldValue.arrayUnion([uid]),
+      "membersName": FieldValue.arrayUnion([uname]),
+      "membersNum" : FieldValue.increment(1)
+    });
+    //내가 속한 그룹 업데이트
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "group": gid,
+    });
+    //초대 컬렉션 속 다큐멘트 제거
+    final CollectionReference inviteCollection = userDocument.collection(
+        "invite");
+    final DocumentReference inviteDocument = inviteCollection.doc(inviteId);
+    await inviteDocument.delete();
+  }
+
+  //초대 거절
+  Future refuseInvite(String inviteId) async {
+    //초대 컬렉션 속 다큐멘트 제거
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final CollectionReference inviteCollection = userDocument.collection(
+        "invite");
+    final DocumentReference inviteDocument = inviteCollection.doc(inviteId);
+    await inviteDocument.delete();
+  }
+
+  //그룹 나가기
+  Future exitGroup(String uname) async {
+    //그룹 업데이트
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    await groupDocument.update({
+      "membersId": FieldValue.arrayRemove([uid]),
+      "membersName": FieldValue.arrayRemove([uname]),
+      "membersNum" : FieldValue.increment(-1)
+    });
+    //유저 상태 초기화
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "group": "",
+      "isKicked": false,
+    });
+  }
+
+  //호스트 나가기
+  Future adminExitGroup(String uname, String nextName, String nextId) async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    //그룹 업데이트 + 호스트 넘겨주기
+    await groupDocument.update({
+      "adminId" : nextId,
+      "adminName" : nextName,
+      "membersId": FieldValue.arrayRemove([uid]),
+      "membersName": FieldValue.arrayRemove([uname]),
+      "membersNum" : FieldValue.increment(-1)
+    });
+    //유저 상태 초기화
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "group": "",
+      "isKicked": false,
+    });
+  }
+
+  //그룹 삭제
+  Future endGroup() async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    await groupDocument.delete();
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    //유저상태 초기화
+    await userDocument.update({
+      "group": "",
+      "isKicked": false,
+    });
+  }
+
+  //플레이어 추방
+  Future kickPlayer(String fname) async {
+    //그룹 업데이트
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    await groupDocument.update({
+      "membersId": FieldValue.arrayRemove([fid]),
+      "membersName": FieldValue.arrayRemove([fname]),
+      "membersNum" : FieldValue.increment(-1)
+    });
+    //유저 상태 -> 추방
+    final DocumentReference userDocument = _userCollection.doc(fid);
+    await userDocument.update({
+      "isKicked": true,
+    });
   }
 }
