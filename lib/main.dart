@@ -1,3 +1,4 @@
+import 'package:dorun_dorun/screens/analysisScreens/detailPage.dart';
 import 'package:dorun_dorun/screens/homeScreens/makeRoomPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
           '/toMakeRoomPage': (context) => const MakeRoomPage(), //러너 방 생성 페이지 이동
           '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
           '/toFindFriendPage': (context) => const FindFriendPage(), //친구 추가 페이지 이동
+          '/toDetailPage' : (context) => const DetailPage(),
         });
   }
 }

@@ -145,6 +145,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                 Navigator.pushNamed(context, "/toMakeUserPage", arguments: newUser); //유저 정보를 입력페이지로 전달
                               }
                             }catch(e){ //에러 메시지
+                              debugPrint("errs");
+                              debugPrint("$e");
+                              debugPrint("erre");
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text(
                                   "이미 존재하는 이메일이거나 유효하지 않은 형식입니다.",

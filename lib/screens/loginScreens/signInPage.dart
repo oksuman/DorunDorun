@@ -116,6 +116,9 @@ class _SignInPageState extends State<SignInPage> {
                           FocusScope.of(context).unfocus();
                           if(_tryValidation()){ //로그인 형식 확인
                             try{
+                              if(FirebaseAuth.instance.currentUser == null){
+                                debugPrint("fuck");
+                              }
                               QuerySnapshot snapshot = await FirebaseService(
                                   uid: FirebaseAuth.instance.currentUser!.uid)
                                   .getUserData(_userEmail); //유저 데이터 이메일로 받이오기
@@ -131,6 +134,9 @@ class _SignInPageState extends State<SignInPage> {
                                 Navigator.pushNamed(context, "/toNavigationBarPage"); //로그인
                               }
                             }catch(e){ //에러 메시지
+                              debugPrint("log");
+                              debugPrint("$e");
+                              debugPrint("log2");
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text(
                                   "존재하지 않는 이메일이나 잘못된 패스워드입니다.",
