@@ -279,4 +279,20 @@ class FirebaseService{
       "isKicked": true,
     });
   }
+
+  //아바타 ID get
+  Future<int> getAvatarId() async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final DocumentSnapshot groupSnapshot = await userDocument.get();
+    return groupSnapshot.get("avatarId");
+  }
+  //아바타 ID set
+  Future setAvatarId(int avatarId) async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "membersId": avatarId,
+    });
+  }
+
+
 }
