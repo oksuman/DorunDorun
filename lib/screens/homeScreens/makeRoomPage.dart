@@ -48,12 +48,14 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   final CollectionReference _userCollection =
       FirebaseFirestore.instance.collection("users"); //파이베이스 유저 컬렉션 가져오기
 
-  //**** location 주석 달어주세요 *****
+
   Location location = Location();
 
+  // gps 사용 권한
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
 
+   // gps 사용 권한 받기
   _giveAuthority() async {
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
@@ -70,7 +72,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }
     }
   }
-  //******************************
 
   //스토리지에서 내 데이터 받아오기
   _getMyData() async {
