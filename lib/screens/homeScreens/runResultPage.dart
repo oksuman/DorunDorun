@@ -24,12 +24,29 @@ class _RunResultPageState extends State<RunResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            title: const Text("Do run! Do run!")
+          // 앱 상단 바
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.black),
+          title: const Text(
+            "결과도르",
+            style: TextStyle(
+                color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold
+            ),
+          ),
+          backgroundColor: Colors.yellow,
+          centerTitle: true,
         ),
         body: ListView(
             padding: const EdgeInsets.all(8),
             children: <Widget>[
               Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.greenAccent,
+                    width: 8.0,
+                  )
+                ),
                 height: 500,
                 alignment: Alignment.centerLeft,
                 child: FlutterMap(
@@ -57,8 +74,6 @@ class _RunResultPageState extends State<RunResultPage> {
                           strokeWidth: 5,
                           borderStrokeWidth: 5,
                           isDotted: true,
-
-
                           // 속력에 따라 색깔 gradientColors 를 조정가능
                         ),
                       ],
@@ -66,6 +81,21 @@ class _RunResultPageState extends State<RunResultPage> {
                   ],
                 ),
               ),
+              const SizedBox(height: 50),
+              ElevatedButton(
+                onPressed: (){},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow,
+                ),
+                child : const Text(
+                  '경로도 함께 기록',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    fontSize: 15
+                  ),
+                ),
+              )
             ]
         )
     );
