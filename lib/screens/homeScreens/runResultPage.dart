@@ -69,9 +69,9 @@ class _RunResultPageState extends State<RunResultPage> {
                       polylines: [
                         Polyline(
                           points: widget.runResult,
-                          color: Colors.yellow,
-                          borderColor: Colors.yellow,
-                          strokeWidth: 5,
+                          color: Colors.greenAccent,
+                          borderColor: Colors.greenAccent,
+                          strokeWidth: 8,
                           borderStrokeWidth: 5,
                           isDotted: true,
                           // 속력에 따라 색깔 gradientColors 를 조정가능

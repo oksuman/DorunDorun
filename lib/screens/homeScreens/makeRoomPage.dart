@@ -205,7 +205,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       appBar: AppBar(
         // 앱 상단 바
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
         title: const Text(
           "러닝 방 생성",
           style: TextStyle(

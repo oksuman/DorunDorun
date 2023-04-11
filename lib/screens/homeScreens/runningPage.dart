@@ -222,19 +222,18 @@ class _RunningPageState extends State<RunningPage> {
                 // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 다르다면 갱신
                 // 정확도값이 20 이상인 경우에만 위치변경으로 인정
                 if (currentLatitude != previousLatitude &&
-                    currentLongitude != previousLongitude &&
-                    (changedLocation?.accuracy ?? 0) > 20) {
+                    currentLongitude != previousLongitude) {
 
                   final cur = LatLng(currentLatitude, currentLongitude);
                   final distanceDelta = distance.as(const LengthUnit(1.0), cur, pathMoved.last);
                   // 움직인 거리 업데이트
                   distanceMoved += distanceDelta;
                   //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 100m 마다 음성 읽기, 추후 변경 가능 ////
-                  if(distanceMoved.toInt() % unit100Int > timesUnit){
-                    timesUnit = distanceMoved.toInt() ~/ unit100Int;
+                  if(distanceMoved.toInt() ~/ unit100Int > timesUnit){
+                    timesUnit++;
                     ttsGuide(
                         times: timesUnit,
-                        unit: unitMeter,
+                        unit: unit100Meter,
                         pace: "아직띠"
                     );
                   }
