@@ -92,18 +92,21 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                                      color: Colors.green,
                                       fontSize: 20
                                   ),
                                 ),
                                 // 평균 페이스 표시
+                                const SizedBox(
+                                  height: 20,
+                                ),
                                 Text(
                                     '페이스 ${logs.data!.docs[reverseIndex]["average_pace"]}',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
-                                        fontSize: 20
+                                        fontSize: 15
                                     )
                                 ),
                                 // 달린 거리 표시
@@ -113,7 +116,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
-                                        fontSize: 20
+                                        fontSize: 15
                                     )
                                 ),
                               ],

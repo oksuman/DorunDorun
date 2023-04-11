@@ -9,9 +9,11 @@ import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:latlong2/latlong.dart';
 import 'runResultPage.dart';
-
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'RunningSetting.dart';
+import 'package:wakelock/wakelock.dart';
 
 class RunningPage extends StatefulWidget {
   const RunningPage({Key? key}) : super(key: key);
@@ -33,8 +35,10 @@ class _RunningPageState extends State<RunningPage> {
   Location location = Location();
   Distance distance = const Distance();
 
-  late final defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
+  late final int defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
   double distanceMoved = 0; // 이번 러닝에서 달린 누적 거리
+  int timesUnit = 0; // 단위거리를 주파한 횟수. 즉, distanceMoved % unit. unit은 측정 단위로, 추후 변경
+
   bool isMocked = false; // 멈춰 있는지, true 라면 멈춰있음
   List<LatLng> pathMoved = List<LatLng>.empty(growable: true); // 이번 러닝에서 이동한 경로. (위도,경도) 쌍의 리스트
   /*
@@ -44,8 +48,6 @@ class _RunningPageState extends State<RunningPage> {
       velocity : 현 시점의 순간 속도
    */
   List<Map<String, Object>> snapshots = List<Map<String, Object>>.empty(growable: true);
-
-
 
   //// Timer 관련 ////
   Timer? _runningTimer;
@@ -61,14 +63,11 @@ class _RunningPageState extends State<RunningPage> {
     _runningTimer?.cancel();
   }
     String _timerFormating(int seconds){
-    debugPrint("$seconds");
     final timerView = DateFormat("HH: mm: ss"); // timer가 보일 형식, 형식은 추후 변경 가능
     var dt = DateTime.fromMillisecondsSinceEpoch((seconds+54000)*1000);
-    debugPrint("$dt");
     return timerView.format(dt);
   }
   ///////////////////
-
 
   //// Button 관련 ////
   IconData _runningControlBtn = Icons.pause; // 달리기 시작, 일시정지 버튼
@@ -89,15 +88,44 @@ class _RunningPageState extends State<RunningPage> {
   }
   ////////////////////
 
+  //// TTS 관련 ////
+  FlutterTts tts = FlutterTts();
+
+  void setTts() async{
+    await tts.setLanguage('ko-KR');
+    await tts.setVolume(1.0);
+    await tts.setSpeechRate(0.45);
+    await tts.setPitch(1.0);
+    Map<String, String> voice = {
+      "name": "ko-kr-x-koc-local",
+      "locale": "ko-KR",
+      "quality": "400",
+    };
+    await tts.setVoice(voice);
+  }
+
+  void ttsGuide({
+      required int times,
+      required String unit,
+      required String pace,
+  })async{
+    await tts.speak("${times.toString()} $unit 지점을 통과하였습니다. 현재 페이스는 $pace 입니다.");
+  }
+
+  /////////////////
+
   @override
   void initState() {
     super.initState();
+    setTts();
     _startTimer();
+    Wakelock.enable();
   }
 
   @override
   Widget build(BuildContext context) {
     var initialLocation = ModalRoute.of(context)!.settings.arguments as LocationData;
+
     if(pathMoved.isEmpty){
       defaultTime = initialLocation.time!.toInt();
       snapshots.add({
@@ -107,7 +135,7 @@ class _RunningPageState extends State<RunningPage> {
       });
       // 새 운동 기록 초기화
       var initData = {
-        "average_pace" : 0, //null, 임시로 0
+        "average_pace" : "아직띠", //null, 임시로 0
         "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
         "total_distance" : 0, //null, 임시로 0
         "snapshots" : snapshots,
@@ -166,57 +194,70 @@ class _RunningPageState extends State<RunningPage> {
             TODO : 평균 페이스 계산 구현
              */
             StreamBuilder<LocationData>(
-                initialData: initialLocation,
-                stream: location.onLocationChanged,
-                builder: (context, stream) {
-                  /*
-                  LocationData
-                  latitude : 위도
-                  longitude : 경도
-                  time : timestamp, milliseconds
-                  accuracy : 정확도
-                  velocity : 속도, 기본 단위는 m/s
-                  */
-                  final changedLocation = stream.data;  // 새로 받아온 gps 정보
+              initialData: initialLocation,
+              stream: location.onLocationChanged,
+              builder: (context, stream) {
+                /*
+                LocationData
+                latitude : 위도
+                longitude : 경도
+                time : timestamp, milliseconds
+                accuracy : 정확도
+                velocity : 속도, 기본 단위는 m/s
+                */
+                final changedLocation = stream.data;  // 새로 받아온 gps 정보
 
-                  // 가장 마지막에 기록된 위치 정보
-                  final previousLatitude = pathMoved.last.latitude;
-                  final previousLongitude = pathMoved.last.longitude;
+                // 가장 마지막에 기록된 위치 정보
+                final previousLatitude = pathMoved.last.latitude;
+                final previousLongitude = pathMoved.last.longitude;
 
-                  // 받아온 gps 정보로 변수 초기화. 받아온 값이 null이라면 이전 값을 넣거나 0으로 초기화
-                  final currentLatitude =
-                      changedLocation?.latitude ?? previousLatitude;
-                  final currentLongitude =
-                      changedLocation?.longitude ?? previousLongitude;
-                  final currentSpeed = changedLocation?.speed ?? 0;
-                  final currentTime = changedLocation?.time ?? 0;
+                // 받아온 gps 정보로 변수 초기화. 받아온 값이 null이라면 이전 값을 넣거나 0으로 초기화
+                final currentLatitude =
+                    changedLocation?.latitude ?? previousLatitude;
+                final currentLongitude =
+                    changedLocation?.longitude ?? previousLongitude;
+                // 임시적으로 존재하는 변수들
+                final currentSpeed = changedLocation?.speed ?? 0;
+                final currentTime = changedLocation?.time ?? 0;
+                // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 다르다면 갱신
+                // 정확도값이 20 이상인 경우에만 위치변경으로 인정
+                if (currentLatitude != previousLatitude &&
+                    currentLongitude != previousLongitude &&
+                    (changedLocation?.accuracy ?? 0) > 20) {
 
-                  // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 다르다면 갱신
-                  if (currentLatitude != previousLatitude &&
-                      currentLongitude != previousLongitude) {
-                    final cur = LatLng(currentLatitude, currentLongitude);
-                    final distanceDelta =
-                    distance.as(const LengthUnit(1.0), cur, pathMoved.last);
-
-                    // 새로운 정보의 정확도가 높은 경우, 정보를 데이터베이스에 업로드
-                    if ((changedLocation?.accuracy ?? 0) > 20) {
-                      // 움직인 거리 업데이트
-                      distanceMoved += distanceDelta;
-                      // 지난 시간 업데이트
-                      var deltaTime = currentTime.toInt() - defaultTime;
-                      // 지나온 경로에 새로운 포인트 추가
-                      pathMoved.add(cur);
-                      // 기록 저장
-                      snapshots.add(
-                       {
-                         "accumulated_distance": distanceMoved,
-                         "delta_time" : deltaTime,
-                         "velocity" : currentSpeed,
-                        }
-                      );
-                      _logReference.update({"snapshots" : snapshots});
+                  final cur = LatLng(currentLatitude, currentLongitude);
+                  final distanceDelta = distance.as(const LengthUnit(1.0), cur, pathMoved.last);
+                  // 움직인 거리 업데이트
+                  distanceMoved += distanceDelta;
+                  //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 100m 마다 음성 읽기, 추후 변경 가능 ////
+                  if(distanceMoved.toInt() % unit100Int > timesUnit){
+                    timesUnit = distanceMoved.toInt() ~/ unit100Int;
+                    ttsGuide(
+                        times: timesUnit,
+                        unit: unitMeter,
+                        pace: "아직띠"
+                    );
+                  }
+                  // 지난 시간 업데이트
+                  var deltaTime = currentTime.toInt() - defaultTime;
+                  // 지나온 경로에 새로운 포인트 추가
+                  pathMoved.add(cur);
+                  // 기록 저장
+                  snapshots.add(
+                   {
+                     "accumulated_distance": distanceMoved,
+                     "delta_time" : deltaTime,
+                     "velocity" : currentSpeed,
                     }
-                    // debugPrint("distanceDelta : $distanceDelta");
+                  );
+                  _logReference.update({"snapshots" : snapshots});
+                  _logReference.update({"accumulated_distance" : distanceMoved});
+
+                  debugPrint("accuracy : ${changedLocation?.accuracy}");
+                  debugPrint("distanceDelta : $distanceDelta");
+                  debugPrint("new : $cur");
+                  debugPrint("path : $pathMoved");
+
                   }
                   return Center(
                     child: Row(
@@ -255,7 +296,7 @@ class _RunningPageState extends State<RunningPage> {
             Container(
               color: Colors.grey,
               width: MediaQuery.of(context).size.width,
-              height: 550,
+              height: 500,
               child: const Text("달리기 창"),
             ),
             const SizedBox(
@@ -295,6 +336,7 @@ class _RunningPageState extends State<RunningPage> {
   @override
   void dispose() {
     super.dispose();
+    Wakelock.disable();
     _runningTimer?.cancel();
   }
 }
