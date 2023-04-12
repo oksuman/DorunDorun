@@ -11,12 +11,24 @@ import 'package:latlong2/latlong.dart';
 import 'runResultPage.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'RunningSetting.dart';
 import 'package:wakelock/wakelock.dart';
+import '../../utilities/storageService.dart';
+import '../../models/group.dart';
 
 class RunningPage extends StatefulWidget {
-  const RunningPage({Key? key}) : super(key: key);
+  // 이전 화면에서 넘겨주는 class 변수들
+  final LocationData initialLocation; // 첫 위치 초기화용 LocationData
+  final Group thisGroup; // 현재 사용자가 속해있는 그룹 정보
+  final String userName; // 사용자 이름으로 기록을 업로드할 때 기록의 주인을 식별하기 위해 사용. 꼭 이름일 필요는 없음.
+
+  const RunningPage({
+    super.key,
+    required this.initialLocation,
+    required this.thisGroup,
+    required this.userName,
+  });
+
   @override
   State<RunningPage> createState() => _RunningPageState();
 }
@@ -25,12 +37,13 @@ class RunningPage extends StatefulWidget {
   혼자 뛰는 경우의 RunningPageState 입니다.
 */
 class _RunningPageState extends State<RunningPage> {
-  final currentUser = FirebaseAuth.instance;
-  // user 컬렉션 참조
-  final CollectionReference _userReference =
-  FirebaseFirestore.instance.collection("users");
+
+  // group 컬렉션 참조
+  final CollectionReference _groupReference = FirebaseFirestore.instance.collection("groups");
   // 이번 러닝 기록을 저장할 document의 레퍼런스
-  late final DocumentReference _logReference;
+  late final CollectionReference _logReference;
+  late final String groupId;
+  late final LocationData initialLocation;
 
   Location location = Location();
   Distance distance = const Distance();
@@ -38,11 +51,13 @@ class _RunningPageState extends State<RunningPage> {
   late final int defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
   double distanceMoved = 0; // 이번 러닝에서 달린 누적 거리
   int timesUnit = 0; // 단위거리를 주파한 횟수. 즉, distanceMoved % unit. unit은 측정 단위로, 추후 변경
+  int deltaTime = 0;
 
   bool isMocked = false; // 멈춰 있는지, true 라면 멈춰있음
   List<LatLng> pathMoved = List<LatLng>.empty(growable: true); // 이번 러닝에서 이동한 경로. (위도,경도) 쌍의 리스트
   /*
     snapshots : 순간 기록 들을 저장
+      runner : 주자 id
       accumulated_distance : 현 시점까지 이동한 누적거리
       delta_time : 운동을 시작하고 지난 시간 (milliseconds)
       velocity : 현 시점의 순간 속도
@@ -111,7 +126,6 @@ class _RunningPageState extends State<RunningPage> {
   })async{
     await tts.speak("${times.toString()} $unit 지점을 통과하였습니다. 현재 페이스는 $pace 입니다.");
   }
-
   /////////////////
 
   @override
@@ -119,36 +133,27 @@ class _RunningPageState extends State<RunningPage> {
     super.initState();
     setTts();
     _startTimer();
+    var groupId = widget.thisGroup.getGroupId();
+    _logReference = _groupReference.doc(groupId).collection("log");
+    initialLocation = widget.initialLocation;
+    defaultTime = initialLocation.time!.toInt();
+    var initdata = {
+      "runner": widget.userName,
+      "accumulated_distance": 0,
+      "delta_time" : deltaTime,
+      "velocity" : 0,
+    };
+    // 초기 데이터를 업로드하고, 동시에 snapshots에 저장
+    _logReference.add(initdata);
+    snapshots.add(initdata);
+    // 시작 위치를 이동 경로에 추가
+    pathMoved.add(LatLng(
+        initialLocation.latitude!, initialLocation.longitude!));
     Wakelock.enable();
   }
 
   @override
   Widget build(BuildContext context) {
-    var initialLocation = ModalRoute.of(context)!.settings.arguments as LocationData;
-
-    if(pathMoved.isEmpty){
-      defaultTime = initialLocation.time!.toInt();
-      snapshots.add({
-        "accumulated_distance": 0,
-        "delta_time" : 0,
-        "velocity" : 0,
-      });
-      // 새 운동 기록 초기화
-      var initData = {
-        "average_pace" : "아직띠", //null, 임시로 0
-        "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
-        "total_distance" : 0, //null, 임시로 0
-        "snapshots" : snapshots,
-      };
-      // 새 운동 기록 생성
-      _userReference.doc(currentUser.currentUser!.uid)
-          .collection("log").add(initData).then(
-              (docid)=>_logReference = docid
-      );
-      // 시작 위치를 이동 경로에 추가
-      pathMoved.add(LatLng(
-          initialLocation.latitude!, initialLocation.longitude!));
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -238,26 +243,19 @@ class _RunningPageState extends State<RunningPage> {
                     );
                   }
                   // 지난 시간 업데이트
-                  var deltaTime = currentTime.toInt() - defaultTime;
+                  deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000;
+                  // 기록 저장
+                  var newdata = {
+                    "runner":  widget.userName,
+                    "accumulated_distance": distanceMoved,
+                    "delta_time" : deltaTime,
+                    "velocity" : currentSpeed,
+                  };
+                  _logReference.add(newdata);
+                  snapshots.add(newdata);
                   // 지나온 경로에 새로운 포인트 추가
                   pathMoved.add(cur);
-                  // 기록 저장
-                  snapshots.add(
-                   {
-                     "accumulated_distance": distanceMoved,
-                     "delta_time" : deltaTime,
-                     "velocity" : currentSpeed,
-                    }
-                  );
-                  _logReference.update({"snapshots" : snapshots});
-                  _logReference.update({"accumulated_distance" : distanceMoved});
-
-                  debugPrint("accuracy : ${changedLocation?.accuracy}");
-                  debugPrint("distanceDelta : $distanceDelta");
-                  debugPrint("new : $cur");
-                  debugPrint("path : $pathMoved");
-
-                  }
+                }
                   return Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -318,7 +316,13 @@ class _RunningPageState extends State<RunningPage> {
                     Navigator.pop(context);
                     Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) =>
-                            RunResultPage(runResult: pathMoved)));
+                            RunResultPage(
+                              pathMoved: pathMoved,
+                              snapshots: snapshots,
+                              startTime: defaultTime,
+                              passedTime: _runningSeconds,
+                              distanceMoved: distanceMoved,
+                            )));
                   },
                   heroTag: 'strop running',
                   backgroundColor: Colors.blueGrey,

@@ -18,6 +18,7 @@ import 'package:location/location.dart';
 import '../../models/group.dart';
 import '../../utilities/firebaseService.dart';
 import '../../utilities/storageService.dart';
+import 'runningPage.dart';
 
 class MakeRoomPage extends StatefulWidget {
   const MakeRoomPage({Key? key}) : super(key: key);
@@ -163,7 +164,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }catch(e){ //유저 아이디 받아오기 전에 나오는 오류 흘려주기
 
       }finally{
-        if(this.mounted){ //앱 삭제 후 새로고침 오류 방지
+        if(mounted){ //앱 삭제 후 새로고침 오류 방지
           setState(() { //새로고침
 
           });
@@ -240,7 +241,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
               }
               StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
             },
-            icon: Icon(Icons.exit_to_app),
+            icon: const Icon(Icons.exit_to_app),
           ),
         ],
       ),
@@ -256,7 +257,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
               child: Text("아바타 창"),
             ),
             _playerStatusField(), //유저 접속 목록(밑에 있음)
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Row( //기본모드, 협동모드, 경쟁모드 설정 창
@@ -299,7 +300,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                 )
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             _modeOptionWidget(), //러닝 설정 창(밑에 있음)
@@ -312,14 +313,17 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   backgroundColor: Colors.yellow,
                 ),
                 onPressed: () async {
-                  WidgetsFlutterBinding.ensureInitialized();
-                  // Wakelock.enable();
                   await location.getLocation().then((res) {
-                    Navigator.pushNamed(context, "/toRunningPage",
-                        arguments: res);
-                  });
-                },
-                child: Text(
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context)=>
+                          RunningPage(
+                            initialLocation : res,
+                            thisGroup : _thisGroup,
+                            userName: _uname,
+                          )));
+                    });
+                  },
+                child: const Text(
                   "달리기 시작",
                   style: TextStyle(
                     color: Colors.black,
@@ -356,7 +360,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ],
         ),
       ],
-    ):Center(child: CircularProgressIndicator(),); //멤버 수가 0명이면(파이어스토어에서 아직 못받아오면) 모래시계
+    ):const Center(child: CircularProgressIndicator(),); //멤버 수가 0명이면(파이어스토어에서 아직 못받아오면) 모래시계
   }
 
   //플레이어 창(번호, 이름, 아이디, 나인지)

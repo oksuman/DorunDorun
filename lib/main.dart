@@ -38,7 +38,6 @@ class MyApp extends StatelessWidget {
           '/toMakeUserPage': (context) => const MakeUserPage(), //유저 정보 작성 페이지 이동
           '/toNavigationBarPage': (context) => const NavigationBarPage(), //네비게이션 바 페이지 이동
           '/toMakeRoomPage': (context) => const MakeRoomPage(), //러너 방 생성 페이지 이동
-          '/toRunningPage': (context) => const RunningPage(), //러닝 페이지 이동
           '/toFindFriendPage': (context) => const FindFriendPage(), //친구 추가 페이지 이동
           '/toDetailPage' : (context) => const DetailPage(),
         });
