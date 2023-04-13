@@ -44,7 +44,6 @@ public class MoveCharacter : MonoBehaviour, IEventSystemHandler
             animator.SetFloat("moveSpeed", moveSpeed/6);
         }
     }
-
     public bool CheckObjectIsInCamera(GameObject target)
     {
         Camera myCamera = GameObject.Find("Main Camera").GetComponent<Camera>();

@@ -9,8 +9,10 @@ public class AreaSpawner : MonoBehaviour
     [SerializeField] private float zIndex = 50;
     [SerializeField] private float areaCount = 0;
     [SerializeField] private Transform playerTransform;
+    [SerializeField] public int myMapNum = 0;
     void Start()
     {
+        makeList();
         MakeInitialMap();
     }
 
@@ -41,11 +43,11 @@ public class AreaSpawner : MonoBehaviour
 
         if(isRandom == false)
         {
-            clone = Instantiate(areaPrefabs[0]);
+            clone = Instantiate(areaPrefabs[myMapNum * 4]);
         }
         else
         {
-            int index = Random.Range(0, areaPrefabs.Length);
+            int index = Random.Range(0 + myMapNum * 4, 4 + myMapNum * 4);
             clone = Instantiate(areaPrefabs[index]);
         }
 
@@ -54,5 +56,26 @@ public class AreaSpawner : MonoBehaviour
         clone.GetComponent<Area>().setUp(this, playerTransform);
 
         areaCount++;
+    }
+
+    private void makeList()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            string path = "Maps/area" + i;
+            areaPrefabs[i] = Resources.Load<GameObject>(path);
+        }
+    }
+
+    public void changeMap()
+    {
+        areaCount = 0;
+        GameObject[] objectsToDestroy = GameObject.FindGameObjectsWithTag("Area");
+        foreach (GameObject obj in objectsToDestroy)
+        {
+            Destroy(obj);
+        }
+
+        MakeInitialMap();
     }
 }

@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/MyCharacterView.unity
+- path: Assets/Scenes/MakeRoomView.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
