@@ -1,4 +1,3 @@
-import 'package:dorun_dorun/screens/analysisScreens/detailPage.dart';
 import 'package:dorun_dorun/screens/homeScreens/makeRoomPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,7 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'utilities/firebase_options.dart';
 import 'screens/friendsScreens/findFriendPage.dart';
 import 'Screens/navigationBarPage.dart';
-import 'Screens/homeScreens/runningPage.dart';
 import 'Screens/loginScreens/makeUserPage.dart';
 import 'Screens/loginScreens/signInPage.dart';
 import 'Screens/loginScreens/signUpPage.dart';
@@ -39,7 +37,6 @@ class MyApp extends StatelessWidget {
           '/toNavigationBarPage': (context) => const NavigationBarPage(), //네비게이션 바 페이지 이동
           '/toMakeRoomPage': (context) => const MakeRoomPage(), //러너 방 생성 페이지 이동
           '/toFindFriendPage': (context) => const FindFriendPage(), //친구 추가 페이지 이동
-          '/toDetailPage' : (context) => const DetailPage(),
         });
   }
 }

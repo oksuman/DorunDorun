@@ -13,7 +13,6 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'RunningSetting.dart';
 import 'package:wakelock/wakelock.dart';
-import '../../utilities/storageService.dart';
 import '../../models/group.dart';
 
 class RunningPage extends StatefulWidget {

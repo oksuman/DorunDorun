@@ -20,7 +20,7 @@ class DateFormating{
     firestore에서 사용하는 geopoint 형식으로 변환
  */
 class LatLngFormating{
-  static List<LatLng> toLatLng(List<Map<String, double>> geoPoints){
+  static List<LatLng> toLatLng(List<dynamic> geoPoints){
     List<LatLng> pathMoved = List<LatLng>.empty(growable: true);
     geoPoints.forEach((gp) {
       pathMoved.add(LatLng(gp['latitude']!, gp['longitude']!));
@@ -28,8 +28,8 @@ class LatLngFormating{
     return pathMoved;
   }
 
-  static List<Map<String, double>> fromLatLng(List<LatLng> pathMoved){
-    List<Map<String, double>> geoPoints = List<Map<String, double>>.empty(growable : true);
+  static List<dynamic> fromLatLng(List<LatLng> pathMoved){
+    List<dynamic> geoPoints = List<dynamic>.empty(growable : true);
     pathMoved.forEach((ll) {
       geoPoints.add({
         "latitude" : ll.latitude,

@@ -9,7 +9,7 @@ import '../analysisScreens/dataFormat.dart';
 class RunResultPage extends StatefulWidget {
 
   final List<LatLng> pathMoved; // 이동한 경로
-  final List<Map<String, Object>> snapshots;
+  final List<dynamic> snapshots;
   final int startTime; // 운동을 시작한 시점
   final int passedTime; // 운동 시작 후 흐른 시간
   final double distanceMoved; // 총 움직인 거리

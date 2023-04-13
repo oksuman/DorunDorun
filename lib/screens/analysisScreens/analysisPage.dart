@@ -1,8 +1,10 @@
+import 'package:dorun_dorun/Screens/analysisScreens/detailPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dataFormat.dart';
+
 
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({Key? key}) : super(key: key);
@@ -122,7 +124,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
                       ),
                       // 해당 기록을 터치했을 경우, 자세한 기록 정보를 볼 수 있는 페이지로 이동
                       onTap: (){
-                        Navigator.of(context).pushNamed('/toDetailPage');
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context)=>
+                            DetailPage(
+                              pathMoved: logs.data!.docs[index]['path'],
+                              startTime: DateFormating.dateFormating(logs.data!.docs[index]["start_time"].toDate()),
+                              runningTime: logs.data!.docs[index]["running_time"],
+                              averagePace: logs.data!.docs[index]["average_pace"],
+                              distanceMoved: (logs.data!.docs[index]["total_distance"]/1000).toStringAsFixed(2),
+                            )
+                          )
+                        );
                       },
                     );
                   },
@@ -137,4 +149,5 @@ class _AnalysisPageState extends State<AnalysisPage> {
     );
   }
 }
+
 
