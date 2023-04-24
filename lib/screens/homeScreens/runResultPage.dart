@@ -138,7 +138,7 @@ class _RunResultPageState extends State<RunResultPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                "움직인 거리 : ${widget.distanceMoved.toStringAsFixed(2)} meter",
+                "움직인 거리 : ${(widget.distanceMoved % 1000 / 1000).toStringAsFixed(2)} km",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     fontWeight: FontWeight.bold,

@@ -45,6 +45,7 @@ class _RunningPageState extends State<RunningPage> {
   late final LocationData initialLocation;
 
   Location location = Location();
+
   Distance distance = const Distance();
 
   late final int defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
@@ -229,38 +230,43 @@ class _RunningPageState extends State<RunningPage> {
                     currentLongitude != previousLongitude) {
 
                   final cur = LatLng(currentLatitude, currentLongitude);
-                  final distanceDelta = distance.as(const LengthUnit(1.0), cur, pathMoved.last);
-                  // 움직인 거리 업데이트
-                  distanceMoved += distanceDelta;
-                  //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 100m 마다 음성 읽기, 추후 변경 가능 ////
-                  if(distanceMoved.toInt() ~/ unit100Int > timesUnit){
-                    timesUnit++;
-                    ttsGuide(
-                        times: timesUnit,
-                        unit: unit100Meter,
-                        pace: "아직띠"
-                    );
+                  final distanceDelta = distance.as(LengthUnit.Meter, cur, pathMoved.last);
+                  if(distanceDelta > 10){
+                    // 움직인 거리 업데이트
+                    distanceMoved += distanceDelta;
+                    //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
+                    if(distanceMoved.toInt() ~/ unit1000Int > timesUnit){
+                      timesUnit++;
+                      ttsGuide(
+                          times: timesUnit,
+                          unit: unit1Kilo,
+                          pace: "아직띠"
+                      );
+                    }
+                    // 지난 시간 업데이트
+                    deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000;
+                    // 기록 저장
+                    var newdata = {
+                      "runner":  widget.userName,
+                      "accumulated_distance": distanceMoved,
+                      "delta_time" : deltaTime,
+                      "velocity" : currentSpeed,
+                    };
+                    _logReference.add(newdata);
+                    snapshots.add(newdata);
+                    // 지나온 경로에 새로운 포인트 추가
+                    pathMoved.add(cur);
                   }
-                  // 지난 시간 업데이트
-                  deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000;
-                  // 기록 저장
-                  var newdata = {
-                    "runner":  widget.userName,
-                    "accumulated_distance": distanceMoved,
-                    "delta_time" : deltaTime,
-                    "velocity" : currentSpeed,
-                  };
-                  _logReference.add(newdata);
-                  snapshots.add(newdata);
-                  // 지나온 경로에 새로운 포인트 추가
-                  pathMoved.add(cur);
+                  debugPrint("distanceDelta : $distanceDelta");
+                  debugPrint("pathMoved: $pathMoved");
+
                 }
                   return Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text(
-                          "움직인 거리 : ${distanceMoved.toStringAsFixed(2)} meter",
+                          "움직인 거리 : ${(distanceMoved % 1000 / 1000).toStringAsFixed(2)} km",
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
