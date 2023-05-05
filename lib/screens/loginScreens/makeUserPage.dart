@@ -21,6 +21,7 @@ class MakeUserPage extends StatefulWidget {
 
 class _MakeUserPageState extends State<MakeUserPage> {
   final _formKey = GlobalKey<FormState>();
+  final _authentication = FirebaseAuth.instance;
   final List<String> _ageList = []; //나이 스크롤 리스트
   final List<String> _heightList = []; //키 스크롤 리스트
   final List<String> _weightList = []; //체중 스크롤 리스트
@@ -34,9 +35,11 @@ class _MakeUserPageState extends State<MakeUserPage> {
 
   String _userName = ''; //유저 닉네임
   String _userGender = '남자'; //유저 성별
-  String _userAge = '20 살'; //유저 나이
-  String _userHeight = '160 cm'; //유저 키
-  String _userWeight = '60 kg'; //유저 몸무게
+  String _userAge = '입력안함'; //유저 나이
+  String _userHeight = '입력안함'; //유저 키
+  String _userWeight = '입력안함'; //유저 몸무게
+  bool _switchCheck = false;
+  bool _privacyCheck = false;
 
   final CollectionReference userCollection =
     FirebaseFirestore.instance.collection("users"); //파이베이스 유저 컬렉션 가져오기
@@ -49,7 +52,66 @@ class _MakeUserPageState extends State<MakeUserPage> {
     }
     return false;
   }
-
+  _showPrivacyDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("개인정보 이용 동의"),
+          content: Text("입력하신 모든 정보는 개인정보 보호법에 의해 보호됩니다. "
+              "수집된 신체정보는 서비스 이용에 따른 정밀한 운동 피드백을 위한 목적으로 이용됩니다. "
+              "이에 동의하시겠습니까?"),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: 0
+              ),
+              child: Text("취소"),
+              onPressed: (){
+                setState(() {
+                  _switchCheck = false;
+                  _privacyCheck = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  elevation: 0
+              ),
+              child: Text("동의"),
+              onPressed: () {
+                setState(() {
+                  _switchCheck = true;
+                  _privacyCheck = true;
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _showNameAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: new Text("닉네임 중복"),
+          content: new Text("이미 존재하는 닉네임 입니다."),
+          actions: [
+            CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text("확인"),
+                onPressed: () {
+                  Navigator.pop(context);
+                })
+          ],
+        );
+      },
+    );
+  }
   @override
   void initState() { //스크롤 리스트 초기화
     super.initState();
@@ -63,7 +125,6 @@ class _MakeUserPageState extends State<MakeUserPage> {
       _weightList.add(w.toString()+" kg");
     }
   }
-
   @override
   Widget build(BuildContext context) {
     UserCredential _newUser = ModalRoute.of(context)!.settings.arguments as UserCredential; //argument 받아오기
@@ -75,18 +136,35 @@ class _MakeUserPageState extends State<MakeUserPage> {
       child: Scaffold(
         appBar: AppBar( //앱 상단 바
           elevation: 0,
-          iconTheme: IconThemeData(color: Colors.black),
+          //iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238),), //white
+          leading: IconButton(
+            onPressed: () async{
+              try{
+                final currentUser = _authentication.currentUser;
+                await currentUser?.delete();
+                Navigator.pop(context);
+              }catch(e){
+                debugPrint("errs");
+                debugPrint("$e");
+                debugPrint("erre");
+              }
+
+            },
+            icon: Icon(Icons.arrow_back),
+            color: Color.fromARGB(255, 238, 238, 238),
+          ),
           title: const Text(
             "사용자 정보 입력",
             style: TextStyle(
-                color: Colors.black,
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 238, 238, 238), //white
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: Colors.yellow,
+          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
           centerTitle: true,
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color.fromARGB(255, 238, 238, 238), //white
         body: SingleChildScrollView(
           child: Center(
             child: Padding(
@@ -113,7 +191,9 @@ class _MakeUserPageState extends State<MakeUserPage> {
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "닉네임:",
                           labelStyle: TextStyle(
+                            fontFamily: "SCDream",
                             fontSize: 20,
+                            color: Color.fromARGB(255, 57, 62, 70), //grey
                           ),
                         )),
                     SizedBox(height: 20),
@@ -122,12 +202,19 @@ class _MakeUserPageState extends State<MakeUserPage> {
                       children: [
                         Text("성별:",
                           style: TextStyle(
-                            fontSize: 14,
+                            fontFamily: "SCDream",
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 57, 62, 70), //grey
                           ),
                         ),
                         SizedBox(height: 20),
                         RadioListTile(
-                            title: Text("남자"),
+                            title: Text("남자",
+                              style: TextStyle(
+                                fontFamily: "SCDream",
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 34, 40, 49), //black
+                              ),),
                             value: Gender.MAN,
                             groupValue: _gender,
                             onChanged: (value) {
@@ -138,7 +225,13 @@ class _MakeUserPageState extends State<MakeUserPage> {
                             }
                         ),
                         RadioListTile(
-                            title: Text("여자"),
+                            title: Text("여자",
+                              style: TextStyle(
+                                fontFamily: "SCDream",
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 34, 40, 49), //black
+                              ),
+                            ),
                             value: Gender.WOMAN,
                             groupValue: _gender,
                             onChanged: (value) {
@@ -151,93 +244,157 @@ class _MakeUserPageState extends State<MakeUserPage> {
                       ],
                     ),
                     SizedBox(height: 20),
-                    GestureDetector( //나이 선택 창
-                      onTap: (){
-                        _ageListSpinner(context);
-                      },
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 40,
-                            color: Colors.white,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("나이: "),
-                                Text(_userAge,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green
-                                  ),
-                                ),
-                              ],
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("신체정보:",
+                          style: TextStyle(
+                            fontFamily: "SCDream",
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 57, 62, 70), //grey
                           ),
-                          Container(height: 1, color: Colors.grey,)
-                        ],
-                      ),
+                        ),
+                        Switch(
+                            value: _switchCheck,
+                            onChanged: (value){
+                              if(_privacyCheck){
+                                setState((){
+                                  _switchCheck = value;
+                                });
+                              }
+                              else{
+                                if(!_switchCheck && !_privacyCheck)
+                                  _showPrivacyDialog();
+                                setState(() {
+                                  if(value){
+                                    _userAge = '20 살'; //유저 나이
+                                    _userHeight = '160 cm'; //유저 키
+                                    _userWeight = '60 kg'; //유저 몸무게
+                                  }else{
+                                    _userAge = "입력안함";
+                                    _userWeight = "입력안함";
+                                    _userHeight = "입력안함";
+                                  }
+                                  //_switchCheck = value;
+                                });
+                              }
+                            }
+                        )
+                      ],
                     ),
-                    SizedBox(height: 20),
-                    GestureDetector( //키 선택 창
-                      onTap: (){
-                        _heightListSpinner(context);
-                      },
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 40,
-                            color: Colors.white,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("키: "),
-                                Text(_userHeight,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green
-                                  ),
+                    _switchCheck?Column(
+                      children: [
+                        SizedBox(height: 20),
+                        GestureDetector( //나이 선택 창
+                          onTap: (){
+                            _ageListSpinner(context);
+                          },
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 40,
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("나이: ",
+                                      style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontSize: 14,
+                                        color: Color.fromARGB(255, 57, 62, 70), //grey
+                                      ),
+                                    ),
+                                    Text(_userAge,
+                                      style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromARGB(255, 0, 173, 181), //teal
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(height: 1, color: Colors.grey,)
+                            ],
                           ),
-                          Container(height: 1, color: Colors.grey,)
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    GestureDetector( //체중 선택 창
-                      onTap: (){
-                        _weightListSpinner(context);
-                      },
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 40,
-                            color: Colors.white,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("체중: "),
-                                Text(_userWeight,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green
-                                  ),
+                        ),
+                        SizedBox(height: 20),
+                        GestureDetector( //키 선택 창
+                          onTap: (){
+                            _heightListSpinner(context);
+                          },
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 40,
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("키: ",
+                                      style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontSize: 14,
+                                        color: Color.fromARGB(255, 57, 62, 70), //grey
+                                      ),),
+                                    Text(_userHeight,
+                                      style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromARGB(255, 0, 173, 181), //teal
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(height: 1, color: Colors.grey,)
+                            ],
                           ),
-                          Container(height: 1, color: Colors.grey,)
-                        ],
-                      ),
-                    ),
+                        ),
+                        SizedBox(height: 20),
+                        GestureDetector( //체중 선택 창
+                          onTap: (){
+                            _weightListSpinner(context);
+                          },
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 40,
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("체중: ",
+                                      style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontSize: 14,
+                                        color: Color.fromARGB(255, 57, 62, 70), //grey
+                                      ),),
+                                    Text(_userWeight,
+                                      style: TextStyle(
+                                        fontFamily: "SCDream",
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromARGB(255, 0, 173, 181), //teal
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(height: 1, color: Colors.grey,)
+                            ],
+                          ),
+                        ),
+                      ],
+                    ):
+                    Container(),
                     SizedBox(height: 40),
                     ElevatedButton( //로그인 버튼
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          backgroundColor: Colors.yellow,
+                          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
+                          elevation: 0,
                         ),
                         onPressed: () async{
                           FocusScope.of(context).unfocus();
@@ -266,17 +423,9 @@ class _MakeUserPageState extends State<MakeUserPage> {
                               await StorageService().saveUserEmail(_newUser.user!.email!); //스토리지에 이메일 저장
                               await StorageService().saveUserID(_newUser.user!.uid); //스토리지에 파이어베이스 id 저장
                               await StorageService().saveUserGroup(""); //스토리지에 joined group 저장
-                              Navigator.pushNamed(context, "/toNavigationBarPage"); //메인 페이지 이동
+                              Navigator.pushNamedAndRemoveUntil(context, '/toNavigationBarPage', (route) => false); //로그인
                             }catch(e){
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar( //에러 메시지
-                                content: Text(
-                                  "이미 존재하는 닉네임입니다.",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                backgroundColor: Colors.grey,
-                              ));
+                              _showNameAlert();
                             }
                           }
                         },
@@ -286,7 +435,8 @@ class _MakeUserPageState extends State<MakeUserPage> {
                             Text(
                               "계정 생성하기",
                               style: TextStyle(
-                                color: Colors.black,
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                fontFamily: "SCDream",
                                 fontSize: 14,
                               ),
                             ),

@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dorun_dorun/utilities/firebaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../utilities/storageService.dart';
 
@@ -30,6 +31,26 @@ class _SignInPageState extends State<SignInPage> {
     }
     return false;
   }
+  void _showLoginAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return CupertinoAlertDialog(
+          title: new Text("로그인 실패"),
+          content: new Text("존재하지 않는 이메일이나 잘못된 \n패스워드입니다."),
+          actions: [
+            CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text("확인"),
+                onPressed: () {
+                  Navigator.pop(context);
+                })
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector( //키보드 숨기기
@@ -39,18 +60,19 @@ class _SignInPageState extends State<SignInPage> {
       child: Scaffold(
           appBar: AppBar( // 앱 상단 바
             elevation: 0,
-            iconTheme: IconThemeData(color: Colors.black),
+            iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
             title: const Text(
-              "이메일로 로그인",
+              "이메일 로그인",
               style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 238, 238, 238), //white
+                  fontSize: 20,
                   fontWeight: FontWeight.bold),
             ),
-            backgroundColor: Colors.yellow,
+            backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
             centerTitle: true,
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Color.fromARGB(255, 238, 238, 238), //white
           resizeToAvoidBottomInset: false,
           body: Center(
             child: Padding(
@@ -77,6 +99,7 @@ class _SignInPageState extends State<SignInPage> {
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "이메일",
                           labelStyle: TextStyle(
+                            fontFamily: "SCDream",
                             fontSize: 16,
                           )),
                       keyboardType: TextInputType.emailAddress,
@@ -100,6 +123,7 @@ class _SignInPageState extends State<SignInPage> {
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "패스워드",
                           labelStyle: TextStyle(
+                            fontFamily: "SCDream",
                             fontSize: 16,
                           )),
                       keyboardType: TextInputType.text,
@@ -108,16 +132,17 @@ class _SignInPageState extends State<SignInPage> {
                     ElevatedButton( //로그인 버튼
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          backgroundColor: Colors.yellow,
+                          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
+                          elevation: 0,
                         ),
                         onPressed: () async{
                           FocusScope.of(context).unfocus();
                           if(_tryValidation()){ //로그인 형식 확인
                             try{
                               if(FirebaseAuth.instance.currentUser == null){
-                                debugPrint("fuck");
+                                debugPrint("null");
                               }
                               QuerySnapshot snapshot = await FirebaseService(
                                   uid: FirebaseAuth.instance.currentUser!.uid)
@@ -131,21 +156,13 @@ class _SignInPageState extends State<SignInPage> {
                                 await StorageService().saveUserEmail(_userEmail); //스토리지에 이메일 저장
                                 await StorageService().saveUserID(snapshot.docs[0]['id']); //스토리지에 파이어베이스 id 저장
                                 await StorageService().saveUserGroup(snapshot.docs[0]['group']); //스토리지에 joined group 저장
-                                Navigator.pushNamed(context, "/toNavigationBarPage"); //로그인
+                                Navigator.pushNamedAndRemoveUntil(context, '/toNavigationBarPage', (route) => false); //로그인
                               }
                             }catch(e){ //에러 메시지
                               debugPrint("log");
                               debugPrint("$e");
                               debugPrint("log2");
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text(
-                                  "존재하지 않는 이메일이나 잘못된 패스워드입니다.",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                backgroundColor: Colors.grey,
-                              ));
+                              _showLoginAlert();
                             }
                           }
                         },
@@ -155,7 +172,8 @@ class _SignInPageState extends State<SignInPage> {
                             Text(
                               "로그인",
                               style: TextStyle(
-                                color: Colors.black,
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                fontFamily: "SCDream",
                                 fontSize: 14,
                               ),
                             ),
@@ -165,7 +183,8 @@ class _SignInPageState extends State<SignInPage> {
                 ),
               ),
             ),
-          )),
+          ),
+      ),
     );
   }
 }

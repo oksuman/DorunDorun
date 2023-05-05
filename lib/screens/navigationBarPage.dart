@@ -39,12 +39,18 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "홈"),
-          BottomNavigationBarItem(icon: Icon(Icons.people_alt), label: "친구관리"),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: "업적"),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: "기록"),
+          BottomNavigationBarItem(icon: Icon(Icons.people_alt_sharp), label: "친구관리"),
+          BottomNavigationBarItem(icon: Icon(Icons.emoji_events_sharp), label: "업적"),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics_sharp), label: "기록"),
         ],
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Color.fromARGB(255, 238, 238, 238), //white
+        selectedLabelStyle:
+          const TextStyle(fontFamily: "SCDream", fontSize: 12),
+        unselectedLabelStyle:
+          const TextStyle(fontFamily: "SCDream", fontSize: 10),
       ),
     );
   }

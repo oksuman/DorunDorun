@@ -85,6 +85,16 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: SCDream
+      fonts:
+        - asset: assets/fonts/SCDream3.otf
+        - asset: assets/fonts/SCDream1.otf
+          weight: 300
+        - asset: assets/fonts/SCDream5.otf
+          weight: 700
+        - asset: assets/fonts/SCDream7.otf
+          weight: 900
   # fonts:
   #   - family: Schyler
   #     fonts:
