@@ -5,21 +5,25 @@ import 'dataFormat.dart';
 
 class DetailPage extends StatefulWidget {
   final List<dynamic>? pathMoved;
+  final List<dynamic> pace;
   final String startTime;
   final String runningTime;
   final String averagePace;
   final String distanceMoved;
+
   // TODO : 임시방편 주먹구구식 코드 재개발
   // TODO : snapshots 추가
 
   const DetailPage({
     super.key,
     this.pathMoved,
+    required this.pace,
     required this.startTime,
     required this.runningTime,
     required this.averagePace,
     required this.distanceMoved,
   });
+
   @override
   State<DetailPage> createState() => _DetailPageState();
 }
@@ -27,55 +31,68 @@ class DetailPage extends StatefulWidget {
 class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
         appBar: AppBar(
           // 앱 상단 바
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black),
+          iconTheme:
+              const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
+          //white
           title: const Text(
-            "운동 결과",
+            "상세",
             style: TextStyle(
-                color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold
-            ),
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 238, 238, 238), //white
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
           ),
-          backgroundColor: Colors.yellow,
+          backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+          //teal
           centerTitle: true,
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(8),
+        body: ListView(padding: const EdgeInsets.all(8),
           children: <Widget>[
-            if(widget.pathMoved != null)
+            const SizedBox(height: 5),
+            Text(
+              widget.startTime,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 34, 40, 49), //black
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (widget.pathMoved != null)
               Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.greenAccent,
-                      width: 8.0,
-                    )
-                ),
+                  color: Colors.greenAccent,
+                  width: 8.0,
+                )),
                 height: 400,
                 alignment: Alignment.centerLeft,
                 child: FlutterMap(
                   options: MapOptions(
-                    center: LatLngFormating.toLatLng(widget.pathMoved!)[widget.pathMoved!.length~/2],
+                    center: LatLngFormatting.toLatLng(
+                        widget.pathMoved!)[widget.pathMoved!.length ~/ 2],
                     minZoom: 13,
                     zoom: 15,
-                    maxBounds: LatLngBounds(
-                        LatLng(30, 120),
-                        LatLng(40, 140)
-                    ),
+                    maxBounds: LatLngBounds(LatLng(30, 120), LatLng(40, 140)),
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.app',
                     ),
                     PolylineLayer(
                       polylineCulling: true,
                       polylines: [
                         Polyline(
-                          points: LatLngFormating.toLatLng(widget.pathMoved!),
+                          points: LatLngFormatting.toLatLng(widget.pathMoved!),
                           color: Colors.greenAccent,
                           borderColor: Colors.greenAccent,
                           strokeWidth: 8,
@@ -88,51 +105,61 @@ class _DetailPageState extends State<DetailPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                "움직인 거리 : ${widget.distanceMoved} km",
-                textAlign: TextAlign.center,
+            const SizedBox(height: 10),
+            Text(
+              "달린 거리 : ${widget.distanceMoved} km",
+              textAlign: TextAlign.center,
                 style: const TextStyle(
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 34, 40, 49), //black
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "운동한 시간 : ${widget.runningTime}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 34, 40, 49), //black
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "평균 페이스 : ${widget.averagePace}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 34, 40, 49), //black
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              color: Colors.grey,
+              width: MediaQuery.of(context).size.width,
+              height: 50,
+              child: const Text("km 별 시간대 구현 예정"),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+              ),
+              child: const Text(
+                '기록과 함께 달리기',
+                style: TextStyle(
+                    fontFamily: "SCDream",
+                    color: Color.fromARGB(255, 238, 238, 238), //white
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                ),
+                    fontSize: 16),
               ),
-              Text(
-                "운동 시작 시간 : ${widget.startTime}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                ),
-              ),
-              Text(
-                "운동한 시간 : ${widget.runningTime}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: (){},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                child : const Text(
-                  '기록과 함께 달리기',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontSize: 15
-                  ),
-                ),
-              ),
-            ]
-        )
-    );
+            ),
+        ]));
   }
 }
