@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import '../../utilities/firebaseService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum Gender {MAN, WOMAN}
+enum Gender {MAN, WOMAN, NONE}
 
 class MakeUserPage extends StatefulWidget {
   const MakeUserPage({Key? key}) : super(key: key);
@@ -238,6 +238,23 @@ class _MakeUserPageState extends State<MakeUserPage> {
                               setState(() {
                                 _gender = value!;
                                 _userGender = "여자";
+                              });
+                            }
+                        ),
+                        RadioListTile(
+                            title: const Text("기입안함",
+                              style: TextStyle(
+                                fontFamily: "SCDream",
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 34, 40, 49), //black
+                              ),
+                            ),
+                            value: Gender.NONE,
+                            groupValue: _gender,
+                            onChanged: (value) {
+                              setState(() {
+                                _gender = value!;
+                                _userGender = "기입안함";
                               });
                             }
                         ),

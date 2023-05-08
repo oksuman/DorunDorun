@@ -281,145 +281,153 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         ],
       ),
       backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container( //아바타 창
-              color: Colors.black,
-              width: MediaQuery.of(context).size.width,
-              height: 200,
-              child: const Text("아바타 창"),
-            ),
-            Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey,),
-            _playerStatusField(), //유저 접속 목록(밑에 있음)
-            Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey,),
-            Row( //기본모드, 협동모드, 경쟁모드 설정 창
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _modeNum = 0;
-                    });
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    width: 120,
-                    height: 40,
-                    child: Center(
-                      child: Text("기본모드",
-                          style: (_modeNum != 0)
-                              ? const TextStyle(
-                            fontFamily: "SCDream",
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ) : const TextStyle(
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container( //아바타 창
+                color: Colors.black,
+                width: MediaQuery.of(context).size.width,
+                height: 200,
+                child: const Text("아바타 창"),
+              ),
+              Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey,),
+              _playerStatusField(), //유저 접속 목록(밑에 있음)
+              Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey,),
+              Row( //기본모드, 협동모드, 경쟁모드 설정 창
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _modeNum = 0;
+                      });
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      width: 120,
+                      height: 40,
+                      child: Center(
+                        child: Text("기본모드",
+                            style: (_modeNum != 0)
+                                ? const TextStyle(
                               fontFamily: "SCDream",
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 0, 173, 181),
-                              fontWeight: FontWeight.bold
-                          )
-                      ),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _modeNum = 1;
-                    });
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    width: 120,
-                    height: 40,
-                    child: Center(
-                      child: Text("협동모드",
-                          style: (_modeNum != 1)
-                              ? const TextStyle(
-                            fontFamily: "SCDream",
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ) : const TextStyle(
-                              fontFamily: "SCDream",
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 0, 173, 181),
-                              fontWeight: FontWeight.bold
-                          )
-                      ),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _modeNum = 2;
-                    });
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    width: 120,
-                    height: 40,
-                    child: Center(
-                      child: Text(
-                        "경쟁모드",
-                        style: (_modeNum != 2)
-                            ? const TextStyle(
-                          fontFamily: "SCDream",
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ) : const TextStyle(
-                            fontFamily: "SCDream",
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 173, 181),
-                            fontWeight: FontWeight.bold
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ) : const TextStyle(
+                                fontFamily: "SCDream",
+                                fontSize: 16,
+                                color: Color.fromARGB(255, 0, 173, 181),
+                                fontWeight: FontWeight.bold
+                            )
                         ),
                       ),
                     ),
                   ),
-                )
-              ],
-            ),
-            Container(width: MediaQuery.of(context).size.width, height: 1, color: Colors.grey,),
-            _modeOptionWidget(), //러닝 설정 창(밑에 있음)
-            ElevatedButton(
-              //달리기 버튼
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
-                  elevation: 0,
-                ),
-                onPressed: () async {
-                  WidgetsFlutterBinding.ensureInitialized();
-                  // Wakelock.enable();
-                  await location.getLocation().then((res) {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context)=>
-                            RunningPage(
-                              initialLocation : res,
-                              thisGroup : _thisGroup,
-                              userName: _uname,
-                            )));
-                  });
-                },
-                child: Container(
-                  width: 100,
-                  height: 40,
-                  child: const Center(
-                    child: Text(
-                      "달리기 시작",
-                      style: TextStyle(
-                          fontFamily: "SCDream",
-                          color: Color.fromARGB(255, 238, 238, 238), //white
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _modeNum = 1;
+                      });
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      width: 120,
+                      height: 40,
+                      child: Center(
+                        child: Text("협동모드",
+                            style: (_modeNum != 1)
+                                ? const TextStyle(
+                              fontFamily: "SCDream",
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ) : const TextStyle(
+                                fontFamily: "SCDream",
+                                fontSize: 16,
+                                color: Color.fromARGB(255, 0, 173, 181),
+                                fontWeight: FontWeight.bold
+                            )
+                        ),
+                      ),
                     ),
                   ),
-                )),
-          ],
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _modeNum = 2;
+                      });
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      width: 120,
+                      height: 40,
+                      child: Center(
+                        child: Text(
+                          "경쟁모드",
+                          style: (_modeNum != 2)
+                              ? const TextStyle(
+                            fontFamily: "SCDream",
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ) : const TextStyle(
+                              fontFamily: "SCDream",
+                              fontSize: 16,
+                              color: Color.fromARGB(255, 0, 173, 181),
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              Container(width: MediaQuery.of(context).size.width, height: 1, color: Colors.grey,),
+              _modeOptionWidget(), //러닝 설정 창(밑에 있음)
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 100,
+                child: Center(
+                  child: ElevatedButton(
+                    //달리기 버튼
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        WidgetsFlutterBinding.ensureInitialized();
+                        // Wakelock.enable();
+                        await location.getLocation().then((res) {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context)=>
+                                  RunningPage(
+                                    initialLocation : res,
+                                    thisGroup : _thisGroup,
+                                    userName: _uname,
+                                  )));
+                        });
+                      },
+                      child: Container(
+                        width: 120,
+                        height: 50,
+                        child: const Center(
+                          child: Text(
+                            "달리기 시작",
+                            style: TextStyle(
+                                fontFamily: "SCDream",
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18),
+                          ),
+                        ),
+                      )),
+                )
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -709,7 +717,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   Widget _modeOptionWidget() {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: 300,
+        height: MediaQuery.of(context).size.height-531, //351+56+24=431
         child: (_modeNum == 0)?
         Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
