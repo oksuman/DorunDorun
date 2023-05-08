@@ -21,7 +21,7 @@ class FindFriendPage extends StatefulWidget {
 
 class _FindFriendPageState extends State<FindFriendPage> {
   final CollectionReference _userCollection =
-      FirebaseFirestore.instance.collection("users"); //유저 컬렉션
+  FirebaseFirestore.instance.collection("users"); //유저 컬렉션
   final currentUser = FirebaseAuth.instance;
   List<Map<String, dynamic>> _allWaitingData = []; //waiting 컬렉션 데이터
   List<Map<String, dynamic>> _allFriendsData = []; //friends 컬렉션 데이터
@@ -150,114 +150,182 @@ class _FindFriendPageState extends State<FindFriendPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // 앱 상단 바
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
-        title: const Text(
-          "친구 추가",
-          style: TextStyle(
-              color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          // 앱 상단 바
+          elevation: 0,
+          iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
+          title: const Text(
+            "친구 추가",
+            style: TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 238, 238, 238), //white
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
+          centerTitle: true,
         ),
-        backgroundColor: Colors.yellow,
-        centerTitle: true,
-      ),
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          children: [
-            Form(
-              child: TextFormField(
-                onTap: () {
-                  setState(() {
-                  });
-                },
-                onChanged: (value) async {
-                  //텍스트 필드 값 바뀔 시
-                  setState(() {
-                    _typedName = value;
-                  });
-                },
-                onSaved: (value) async {
-                  setState(() {
-                    _typedName = value!;
-                  });
-                },
+        backgroundColor: Color.fromARGB(255, 238, 238, 238), //white
+        body: Center(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Form(
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        borderSide: BorderSide(width: 1, color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        borderSide: BorderSide(width: 1, color: Colors.grey),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                      });
+                    },
+                    onChanged: (value) async {
+                      //텍스트 필드 값 바뀔 시
+                      setState(() {
+                        _typedName = value;
+                      });
+                    },
+                    onSaved: (value) async {
+                      setState(() {
+                        _typedName = value!;
+                      });
+                    },
+                  ),
+                ),
               ),
-            ),
-            Expanded(
-              child: StreamBuilder(
-                  stream: _userCollection.snapshots(),
-                  builder: (context,
-                      AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-                    if(streamSnapshot.hasData){
-                      return ListView.builder(
-                        //검색리스트 보이기
-                        itemCount: streamSnapshot.data!.docs.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          _getFriendList(); //친구목록 받아오기
-                          _getWaitingList(); //대기목록 받아오기
-                          List<bool> isPressedList = []; //대기중 버튼 리스트
-                          for(int i = 0; i<streamSnapshot.data!.docs.length; i++){
-                            if(_nAcceptedFList.contains(
-                                streamSnapshot.data!.docs[i]['fullName']))
-                              isPressedList.add(true);
-                            else
-                              isPressedList.add(false);
-                          } //대기중 버튼 리스트 갱신
-                          final DocumentSnapshot documentSnapshot =
+              Container(width: MediaQuery.of(context).size.width, height: 1, color: Colors.grey,),
+              Expanded(
+                child: StreamBuilder(
+                    stream: _userCollection.snapshots(),
+                    builder: (context,
+                        AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+                      if(streamSnapshot.hasData){
+                        return ListView.builder(
+                          //검색리스트 보이기
+                          itemCount: streamSnapshot.data!.docs.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            _getFriendList(); //친구목록 받아오기
+                            _getWaitingList(); //대기목록 받아오기
+                            List<bool> isPressedList = []; //대기중 버튼 리스트
+                            for(int i = 0; i<streamSnapshot.data!.docs.length; i++){
+                              if(_nAcceptedFList.contains(
+                                  streamSnapshot.data!.docs[i]['fullName']))
+                                isPressedList.add(true);
+                              else
+                                isPressedList.add(false);
+                            } //대기중 버튼 리스트 갱신
+                            final DocumentSnapshot documentSnapshot =
                             streamSnapshot.data!.docs[index];
-                          if (_isinSearchList(
-                              documentSnapshot['fullName'],
-                              documentSnapshot['id'])) {
-                            return Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  children: [
-                                    Text(documentSnapshot[
-                                    'fullName']), //이름
-                                    Text(documentSnapshot['email']), //이메일
-                                  ],
+                            if (_isinSearchList(
+                                documentSnapshot['fullName'],
+                                documentSnapshot['id'])) {
+                              return Card(
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 20, right: 10),
+                                  height: 60,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(documentSnapshot[
+                                          'fullName'],
+                                            style: const TextStyle(
+                                              fontFamily: "SCDream",
+                                              color: Color.fromARGB(255, 34, 40, 49), //black
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ), //이름
+                                          Text(documentSnapshot['email'],
+                                            style: const TextStyle(
+                                              fontFamily: "SCDream",
+                                              color: Color.fromARGB(255, 34, 40, 49), //black
+                                              fontSize: 12,
+                                            ),
+                                          ), //이메일
+                                        ],
+                                      ),
+                                      ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(5),
+                                            ),
+                                            backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                                            elevation: 0,
+                                          ),
+                                          onPressed: () async {
+                                            if (!_nAcceptedFList.contains(
+                                                documentSnapshot['fullName'])) {
+                                              //대기 중이지 않으면,
+                                              setState(() {
+                                                isPressedList[index]=true;
+                                                _nAcceptedFList.add(documentSnapshot['fullName']);
+                                              });//바로 버튼 변경
+                                              await FirebaseService(
+                                                  uid: _uid,
+                                                  fid: documentSnapshot[
+                                                  'id'])
+                                                  .fRequestFriend(
+                                                  _uemail,
+                                                  _uname,
+                                                  documentSnapshot['email'],
+                                                  documentSnapshot['fullName']
+                                              ); //파이어베이스 친구 요청(속도 높이기 위해 매개변수 전달)
+                                            }
+                                          },
+                                          child: (isPressedList[index])
+                                              ? const Text("대기중",
+                                            style: TextStyle(
+                                              fontFamily: "SCDream",
+                                              color: Color.fromARGB(255, 238, 238, 238), //white
+                                              fontSize: 12,
+                                            ),
+                                          )
+                                              : const Text("신 청",
+                                            style: TextStyle(
+                                              fontFamily: "SCDream",
+                                              color: Color.fromARGB(255, 238, 238, 238), //white
+                                              fontSize: 12,
+                                            ),
+                                          )
+                                      )
+                                    ],
+                                  ),
                                 ),
-                                ElevatedButton(
-                                    onPressed: () async {
-                                      if (!_nAcceptedFList.contains(
-                                          documentSnapshot['fullName'])) {
-                                        //대기 중이지 않으면,
-                                        setState(() {
-                                          isPressedList[index]=true;
-                                          _nAcceptedFList.add(documentSnapshot['fullName']);
-                                        });//바로 버튼 변경
-                                        await FirebaseService(
-                                            uid: _uid,
-                                            fid: documentSnapshot[
-                                            'id'])
-                                            .fRequestFriend(
-                                            _uemail,
-                                            _uname,
-                                            documentSnapshot['email'],
-                                            documentSnapshot['fullName']
-                                        ); //파이어베이스 친구 요청(속도 높이기 위해 매개변수 전달)
-                                      }
-                                    },
-                                    child: (isPressedList[index])
-                                        ? Text("대기중")
-                                        : Text("+"))
-                              ],
-                            );
-                          }else{
-                            return Container();
-                          }
-                        },
-                      );
-                    }
-                    return Center(child: CircularProgressIndicator());
-                  }),
-            )
-          ],
+                              );
+                            }else{
+                              return Container();
+                            }
+                          },
+                        );
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    }),
+              )
+            ],
+          ),
         ),
       ),
     );

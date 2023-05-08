@@ -2,6 +2,7 @@
  * 계정을 생성할 수 있는 페이지 입니다. *
  *******************************/
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -28,7 +29,25 @@ class _SignUpPageState extends State<SignUpPage> {
     }
     return false;
   }
-
+  void _showAccountAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text("계정생성 실패"),
+          content: const Text("이미 존재하는 이메일이거나\n 유효하지 않은 형식입니다."),
+          actions: [
+            CupertinoDialogAction(
+                isDefaultAction: true,
+                child: const Text("확인"),
+                onPressed: () {
+                  Navigator.pop(context);
+                })
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector( //키보드 가리기
@@ -38,18 +57,19 @@ class _SignUpPageState extends State<SignUpPage> {
       child: Scaffold(
           appBar: AppBar( //앱 상단 바
             elevation: 0,
-            iconTheme: IconThemeData(color: Colors.black),
+            iconTheme: const IconThemeData(color: Color.fromARGB(255, 238, 238, 238),), //white
             title: const Text(
               "계정 생성",
               style: TextStyle(
-                  color: Colors.black87,
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 238, 238, 238), //white
                   fontSize: 20,
                   fontWeight: FontWeight.bold),
             ),
-            backgroundColor: Colors.yellow,
+            backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
             centerTitle: true,
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           body: Center(
             child: Padding(
               padding: const EdgeInsets.only(left: 20, right: 20),
@@ -57,7 +77,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     TextFormField( //이메일 텍스트필드
                       keyboardType: TextInputType.emailAddress,
                       onSaved: ((value) {
@@ -72,10 +92,11 @@ class _SignUpPageState extends State<SignUpPage> {
                         }
                         return null;
                       }),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "이메일",
                           labelStyle: TextStyle(
+                            fontFamily: "SCDream",
                             fontSize: 16,
                           )
                       ),
@@ -95,10 +116,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       onChanged: (value) {
                         _userPassword = value;
                       },
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "패스워드",
                           labelStyle: TextStyle(
+                            fontFamily: "SCDream",
                             fontSize: 16,
                           )),
                       keyboardType: TextInputType.text,
@@ -118,10 +140,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       onChanged: (value) {
                         _passwordCheck = value;
                       },
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           labelText: "패스워드 확인",
                           labelStyle: TextStyle(
+                            fontFamily: "SCDream",
                             fontSize: 16,
                           )),
                       keyboardType: TextInputType.text,
@@ -130,9 +153,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     ElevatedButton( //계정 생성 버튼
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          backgroundColor: Colors.yellow,
+                          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
+                          elevation: 0,
                         ),
                         onPressed: () async{
                           FocusScope.of(context).unfocus();
@@ -148,25 +172,18 @@ class _SignUpPageState extends State<SignUpPage> {
                               debugPrint("errs");
                               debugPrint("$e");
                               debugPrint("erre");
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text(
-                                  "이미 존재하는 이메일이거나 유효하지 않은 형식입니다.",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                backgroundColor: Colors.grey,
-                              ));
+                              _showAccountAlert();
                             }
                           }
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
+                          children: const [
                             Text(
                               "다 음",
                               style: TextStyle(
-                                color: Colors.black,
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                fontFamily: "SCDream",
                                 fontSize: 14,
                               ),
                             ),
@@ -180,4 +197,3 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
-
