@@ -3,16 +3,17 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../analysisScreens/dataFormat.dart';
+import '../homeScreens/RunningSetting.dart';
 
 class RunResultPage extends StatefulWidget {
-
   final List<LatLng> pathMoved; // 이동한 경로
   final List<dynamic> snapshots;
   final int startTime; // 운동을 시작한 시점
   final int passedTime; // 운동 시작 후 흐른 시간
   final double distanceMoved; // 총 움직인 거리
+  final double averageSpeed;
+  final List<dynamic> pace;
 
   const RunResultPage({
     super.key,
@@ -21,6 +22,8 @@ class RunResultPage extends StatefulWidget {
     required this.startTime,
     required this.passedTime,
     required this.distanceMoved,
+    required this.averageSpeed,
+    required this. pace,
   });
 
   @override
@@ -30,43 +33,54 @@ class RunResultPage extends StatefulWidget {
 class _RunResultPageState extends State<RunResultPage> {
   final currentUser = FirebaseAuth.instance;
   late final String currentUserName;
+
   // user 컬렉션 참조
   final CollectionReference _userReference = FirebaseFirestore.instance.collection("users");
 
   late final LatLng center;
   late final int deltaTime;
 
-  void _saveLog(){
+  void _saveLog() {
     var data = {
-      "start_time" : DateTime.fromMillisecondsSinceEpoch(widget.startTime),
-      "running_time" : TimeFormating.timeFormating(timeInSecond: widget.passedTime),
-      "average_pace" : "구현 예정",
-      "total_distance" : widget.distanceMoved,
-      "snapshots" : widget.snapshots,
-      "path" : null,
+      "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
+      "running_time": TimeFormatting.timeFormatting(timeInSecond: widget.passedTime),
+      "average_pace": TimeFormatting.timeFormatting(
+          timeInSecond : (unit1000Int/widget.averageSpeed).round()
+      ),
+      "total_distance": widget.distanceMoved,
+      "snapshots": widget.snapshots,
+      "pace" : widget.pace,
+      "path": null,
     };
-    _userReference.doc(currentUser.currentUser!.uid)
-        .collection("log").add(data).then(
-            (doc){
-          debugPrint("$doc");
-        }
-    );;
+    _userReference
+        .doc(currentUser.currentUser!.uid)
+        .collection("log")
+        .add(data)
+        .then((doc) {
+      debugPrint("$doc");
+    });
+    ;
   }
-  void _saveLogWithPath(){
+
+  void _saveLogWithPath() {
     var data = {
-      "start_time" : DateTime.fromMillisecondsSinceEpoch(widget.startTime),
-      "running_time" : TimeFormating.timeFormating(timeInSecond: widget.passedTime),
-      "average_pace" : "구현 예정",
-      "total_distance" : widget.distanceMoved,
-      "snapshots" : widget.snapshots,
-      "path" : LatLngFormating.fromLatLng(widget.pathMoved),
+      "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
+      "running_time": TimeFormatting.timeFormatting(timeInSecond: widget.passedTime),
+      "average_pace": TimeFormatting.timeFormatting(
+          timeInSecond : (unit1000Int/widget.averageSpeed).round()
+      ),
+      "total_distance": widget.distanceMoved,
+      "snapshots": widget.snapshots,
+      "pace" : widget.pace,
+      "path": LatLngFormatting.fromLatLng(widget.pathMoved),
     };
-    _userReference.doc(currentUser.currentUser!.uid)
-      .collection("log").add(data).then(
-        (doc){
-          debugPrint("$doc");
-        }
-      );
+    _userReference
+        .doc(currentUser.currentUser!.uid)
+        .collection("log")
+        .add(data)
+        .then((doc) {
+      debugPrint("$doc");
+    });
   }
 
   @override
@@ -81,152 +95,168 @@ class _RunResultPageState extends State<RunResultPage> {
         appBar: AppBar(
           // 앱 상단 바
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black),
+          iconTheme:
+              const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
+          //white
           title: const Text(
-            "결과도르",
+            "결과",
             style: TextStyle(
-                color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold
-            ),
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 238, 238, 238), //white
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
           ),
-          backgroundColor: Colors.yellow,
+          backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+          //teal
           centerTitle: true,
         ),
-        body: ListView(
-            padding: const EdgeInsets.all(8),
-            children: <Widget>[
-              Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.greenAccent,
-                    width: 8.0,
-                  )
+        body: ListView(children: <Widget>[
+          const SizedBox(height: 5),
+          Text(
+            DateFormatting.dateFormatting(DateTime.fromMillisecondsSinceEpoch(widget.startTime)),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Container(
+            margin: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+                border: Border.all(
+              color: const Color.fromARGB(255, 0, 173, 181),
+              width: 4.0,
+            )),
+            width: double.infinity,
+            height: 400,
+            alignment: Alignment.centerLeft,
+            child: FlutterMap(
+              options: MapOptions(
+                center: center,
+                minZoom: 13,
+                zoom: 15,
+                maxBounds: LatLngBounds(LatLng(30, 120), LatLng(40, 140)),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.app',
                 ),
-                height: 400,
-                alignment: Alignment.centerLeft,
-                child: FlutterMap(
-                  options: MapOptions(
-                    center: center,
-                    minZoom: 13,
-                    zoom: 15,
-                    maxBounds: LatLngBounds(
-                        LatLng(30, 120),
-                        LatLng(40, 140)
-                    ),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.app',
-                    ),
-                    PolylineLayer(
-                      polylineCulling: true,
-                      polylines: [
-                        Polyline(
-                          points: widget.pathMoved,
-                          color: Colors.greenAccent,
-                          borderColor: Colors.greenAccent,
-                          strokeWidth: 8,
-                          borderStrokeWidth: 5,
-                          isDotted: true,
-                          // 속력에 따라 색깔 gradientColors 를 조정가능
-                        ),
-                      ],
+                PolylineLayer(
+                  polylineCulling: true,
+                  polylines: [
+                    Polyline(
+                      points: widget.pathMoved,
+                      color: const Color.fromARGB(255, 0, 173, 181),
+                      borderColor: const Color.fromARGB(255, 0, 173, 181),
+                      strokeWidth: 5,
+                      borderStrokeWidth: 5,
+                      isDotted: true,
+                      // 속력에 따라 색깔 gradientColors 를 조정가능
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "움직인 거리 : ${(widget.distanceMoved % 1000 / 1000).toStringAsFixed(2)} km",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                ),
-              ),
-              Text(
-                "운동 시작 시간 : ${DateFormating.dateFormating(
-                    DateTime.fromMillisecondsSinceEpoch(widget.startTime))}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                ),
-              ),
-              Text(
-                "운동한 시간 : ${TimeFormating.timeFormating(timeInSecond: widget.passedTime)}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: (){
-                  _saveLogWithPath();
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, "/toNavigationBarPage");
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                child : const Text(
-                  '경로도 함께 저장하기',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 15
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              ElevatedButton(
-                onPressed: (){
-                  _saveLog();
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, "/toNavigationBarPage");
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                child : const Text(
-                  '기록 저장하기',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontSize: 15
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              ElevatedButton(
-                onPressed: (){
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, "/toNavigationBarPage");
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                ),
-                child : const Text(
-                  '기록 삭제하기',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontSize: 15
-                  ),
-                ),
-              )
-            ]
-        )
-    );
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "달린 거리 : ${(widget.distanceMoved % 1000 / 1000).toStringAsFixed(2)} km",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            "운동한 시간 : ${TimeFormatting.timeFormatting(timeInSecond: widget.passedTime)}",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            "평균 페이스 : ${TimeFormatting.timeFormatting(
+                timeInSecond : (unit1000Int/widget.averageSpeed).round()
+            )}",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              _saveLogWithPath();
+              Navigator.pop(context);
+              Navigator.pushNamed(context, "/toNavigationBarPage");
+            },
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+            ),
+            child: const Text(
+              '경로도 함께 저장하기',
+              style: TextStyle(
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 238, 238, 238), //white
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16),
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _saveLog();
+              Navigator.pop(context);
+              Navigator.pushNamed(context, "/toNavigationBarPage");
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+            ),
+            child: const Text(
+              '기록 저장하기',
+              style: TextStyle(
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 238, 238, 238), //white
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16),
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, "/toNavigationBarPage");
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueGrey,
+            ),
+            child: const Text(
+              '기록 삭제하기',
+              style: TextStyle(
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 238, 238, 238), //white
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16),
+            ),
+          )
+        ]));
   }
 }

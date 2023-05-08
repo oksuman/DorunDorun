@@ -255,7 +255,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             onPressed: ()async{
               Navigator.of(context).pop(); //방 나가기
               if(_membersNum>1){ //멤버가 2명 이상일 때,
-                if(_isAdmin){ //내가 admin이면,
+                if(_isAdmin){ //내가 admin 이면,
                   final nAdminId = _thisGroup.getMembersId()[1];
                   final nAdminName = _thisGroup.getMembersName()[1];
                   await FirebaseService(
@@ -276,7 +276,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
               }
               StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
             },
-            icon: Icon(Icons.exit_to_app),
+            icon: const Icon(Icons.exit_to_app),
           ),
         ],
       ),

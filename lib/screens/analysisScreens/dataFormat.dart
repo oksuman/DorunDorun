@@ -8,9 +8,9 @@ import 'package:latlong2/latlong.dart';
     datetime을 받아 보기 좋은 형식의 날짜 String으로 반환한다.
     형식은 추후에 변경 가능
 */
-class DateFormating{
-  static  String dateFormating(DateTime date){
-    var formatDate = DateFormat('yy년, MMM dd, ' 'a h:mm').format(date);
+class DateFormatting{
+  static String dateFormatting(DateTime date){
+    var formatDate = DateFormat('MMM-dd h:mma').format(date);
     return formatDate;
   }
 }
@@ -19,7 +19,7 @@ class DateFormating{
     LatLng 타입의 변수를
     firestore에서 사용하는 geopoint 형식으로 변환
  */
-class LatLngFormating{
+class LatLngFormatting{
   static List<LatLng> toLatLng(List<dynamic> geoPoints){
     List<LatLng> pathMoved = List<LatLng>.empty(growable: true);
     geoPoints.forEach((gp) {
@@ -40,8 +40,8 @@ class LatLngFormating{
   }
 }
 
-class TimeFormating{
-  static timeFormating({required int timeInSecond}) {
+class TimeFormatting{
+  static String timeFormatting({required int timeInSecond}) {
     int sec = timeInSecond % 60;
     int min = (timeInSecond / 60).floor();
     String minute = min.toString().length <= 1 ? "0$min" : "$min";
