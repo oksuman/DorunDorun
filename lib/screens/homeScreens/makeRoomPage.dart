@@ -19,6 +19,7 @@ import 'package:location/location.dart';
 import '../../models/group.dart';
 import '../../utilities/firebaseService.dart';
 import '../../utilities/storageService.dart';
+import 'runningPage.dart';
 
 class MakeRoomPage extends StatefulWidget {
   const MakeRoomPage({Key? key}) : super(key: key);
@@ -134,7 +135,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }catch(e){ //그룹아이디 받아오기 전에 오류들 흘려주기
 
       }finally{
-        if(this.mounted){ //위젯 삭제 후 새로고침 오류 방지용
+        if(mounted){ //위젯 삭제 후 새로고침 오류 방지용
           setState(() { //앱 새로고침
 
           });
@@ -164,7 +165,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }catch(e){ //유저 아이디 받아오기 전에 나오는 오류 흘려주기
 
       }finally{
-        if(this.mounted){ //앱 삭제 후 새로고침 오류 방지
+        if(mounted){ //앱 삭제 후 새로고침 오류 방지
           setState(() { //새로고침
 
           });
@@ -395,8 +396,13 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   WidgetsFlutterBinding.ensureInitialized();
                   // Wakelock.enable();
                   await location.getLocation().then((res) {
-                    Navigator.pushNamed(context, "/toRunningPage",
-                        arguments: res);
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context)=>
+                            RunningPage(
+                              initialLocation : res,
+                              thisGroup : _thisGroup,
+                              userName: _uname,
+                            )));
                   });
                 },
                 child: Container(
@@ -463,7 +469,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         children: [
           Container(
               width: 30,
-              color: Color.fromARGB(255, 0, 173, 181), //teal
+              color: const Color.fromARGB(255, 0, 173, 181), //teal
               child: Center(
                   child: Text(index.toString(),
                     style: const TextStyle(
@@ -569,14 +575,14 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ),
           Container(
             width: MediaQuery.of(context).size.width / 2 - 80,
-            color: Color.fromARGB(255, 238, 238, 238), //white
+            color: const Color.fromARGB(255, 238, 238, 238), //white
           ),
           Container(
             height: 50,
             width: 40,
             color: const Color.fromARGB(255, 238, 238, 238), //white
             child: IconButton(
-              icon: Icon(Icons.add_sharp),
+              icon: const Icon(Icons.add_sharp),
               onPressed: () {
                 showDialog( //초대 창 띄우기
                     context: context,
@@ -653,7 +659,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                                           shape: RoundedRectangleBorder(
                                                             borderRadius: BorderRadius.circular(5),
                                                           ),
-                                                          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
+                                                          backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
                                                           elevation: 0,
                                                         ),
                                                         onPressed: () async {
@@ -701,7 +707,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
 
   //모드 설정 창
   Widget _modeOptionWidget() {
-    return Container(
+    return SizedBox(
         width: MediaQuery.of(context).size.width,
         height: 300,
         child: (_modeNum == 0)?
@@ -733,7 +739,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                     onPressed: (){
 
                     },
-                    icon: Icon(Icons.arrow_drop_down_sharp)
+                    icon: const Icon(Icons.arrow_drop_down_sharp)
                 ),
                 const Text("5.00 KM",
                   style: TextStyle(
@@ -747,7 +753,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                     onPressed: (){
 
                     },
-                    icon: Icon(Icons.arrow_drop_up_sharp)
+                    icon: const Icon(Icons.arrow_drop_up_sharp)
                 )
               ],
             ),
@@ -757,7 +763,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   onPressed: (){
 
                   },
-                  icon: Icon(Icons.settings_sharp)
+                  icon: const Icon(Icons.settings_sharp)
               ),
             )
           ],
@@ -780,7 +786,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         Column(
           children: const [
             Padding(
-              padding: const EdgeInsets.only(top:20),
+              padding: EdgeInsets.only(top:20),
               child: Text("친구들과 경쟁하여 서로 순위를 비교할 수 있는 모드입니다.",
                 style: TextStyle(
                   fontFamily: "SCDream",
