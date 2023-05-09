@@ -144,8 +144,8 @@ class _RunningPageState extends State<RunningPage> {
      */
     location.changeSettings(
       accuracy: LocationAccuracy.navigation,
-      interval: 5000,
-      distanceFilter: 10,
+      interval: 3000,
+      distanceFilter: 5,
     );
     // Background Gps Tracking 활성화
     location.enableBackgroundMode(enable: true);
@@ -250,8 +250,8 @@ class _RunningPageState extends State<RunningPage> {
                       정확도 : 사용자가 해당 gps 데이터 근방 x미터(즉 반지름이 x인 원 안)에 있을 확률(신뢰도)가 y 퍼센트 이상이다.
                       에서 x값을 당당하는 것이 accuracy 이다.
                      */
-                      if (currentLatitude != previousLatitude &&
-                          currentLongitude != previousLongitude &&
+                      if ((currentLatitude != previousLatitude ||
+                          currentLongitude != previousLongitude) &&
                           (changedLocation?.accuracy ?? 10) < 10) {
                         final cur = LatLng(currentLatitude, currentLongitude);
                         final distanceDelta = distance.as(LengthUnit.Meter, cur, pathMoved.last);
