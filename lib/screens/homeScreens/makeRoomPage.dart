@@ -399,7 +399,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       ),
                       onPressed: () async {
                         WidgetsFlutterBinding.ensureInitialized();
-                        // Wakelock.enable();
                         await location.getLocation().then((res) {
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (context)=>

@@ -128,6 +128,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             builder: (context) => DetailPage(
                                   pathMoved: logs.data!.docs[index]['path'],
                                   pace: logs.data!.docs[index]['pace'],
+                                  snapshots : logs.data!.docs[index]['snapshots'],
                                   startTime: DateFormatting.dateFormatting(logs
                                       .data!.docs[index]["start_time"]
                                       .toDate()),
@@ -138,6 +139,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                   distanceMoved: (logs.data!.docs[index]
                                               ["total_distance"] / 1000)
                                       .toStringAsFixed(2),
+
                                 )));
                       },
                     );

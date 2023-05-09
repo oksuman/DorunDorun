@@ -12,7 +12,7 @@ class RunResultPage extends StatefulWidget {
   final int startTime; // 운동을 시작한 시점
   final int passedTime; // 운동 시작 후 흐른 시간
   final double distanceMoved; // 총 움직인 거리
-  final double averageSpeed;
+  final int averagePace;
   final List<dynamic> pace;
 
   const RunResultPage({
@@ -22,7 +22,7 @@ class RunResultPage extends StatefulWidget {
     required this.startTime,
     required this.passedTime,
     required this.distanceMoved,
-    required this.averageSpeed,
+    required this.averagePace,
     required this. pace,
   });
 
@@ -45,7 +45,7 @@ class _RunResultPageState extends State<RunResultPage> {
       "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
       "running_time": TimeFormatting.timeFormatting(timeInSecond: widget.passedTime),
       "average_pace": TimeFormatting.timeFormatting(
-          timeInSecond : (unit1000Int/widget.averageSpeed).round()
+          timeInSecond : widget.averagePace,
       ),
       "total_distance": widget.distanceMoved,
       "snapshots": widget.snapshots,
@@ -67,7 +67,7 @@ class _RunResultPageState extends State<RunResultPage> {
       "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
       "running_time": TimeFormatting.timeFormatting(timeInSecond: widget.passedTime),
       "average_pace": TimeFormatting.timeFormatting(
-          timeInSecond : (unit1000Int/widget.averageSpeed).round()
+          timeInSecond : widget.averagePace,
       ),
       "total_distance": widget.distanceMoved,
       "snapshots": widget.snapshots,
@@ -187,7 +187,7 @@ class _RunResultPageState extends State<RunResultPage> {
           const SizedBox(height: 5),
           Text(
             "평균 페이스 : ${TimeFormatting.timeFormatting(
-                timeInSecond : (unit1000Int/widget.averageSpeed).round()
+                timeInSecond : widget.averagePace.round()
             )}",
             textAlign: TextAlign.center,
             style: const TextStyle(

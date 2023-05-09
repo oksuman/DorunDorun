@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'dataFormat.dart';
+import 'package:location/location.dart';
+import 'ghostRunPage.dart';
 
 class DetailPage extends StatefulWidget {
   final List<dynamic>? pathMoved;
   final List<dynamic> pace;
+  final List<dynamic> snapshots;
   final String startTime;
   final String runningTime;
   final String averagePace;
@@ -18,6 +21,7 @@ class DetailPage extends StatefulWidget {
     super.key,
     this.pathMoved,
     required this.pace,
+    required this.snapshots,
     required this.startTime,
     required this.runningTime,
     required this.averagePace,
@@ -29,6 +33,8 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
+  Location location = Location();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,7 +153,19 @@ class _DetailPageState extends State<DetailPage> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                await location.getLocation().then((res) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => GhostRunPage(
+                        pace : widget.pace,
+                        snapshots: widget.snapshots,
+                        runningTime: widget.runningTime,
+                        averagePace: widget.averagePace,
+                        distanceMoved:  widget.distanceMoved,
+                        initialLocation: res,
+                      )));
+                });
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 0, 173, 181),
               ),

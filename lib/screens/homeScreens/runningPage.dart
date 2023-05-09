@@ -51,8 +51,8 @@ class _RunningPageState extends State<RunningPage> {
   late final int defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
   double distanceMoved = 0; // 이번 러닝에서 달린 누적 거리
   int timesUnit = 0; // 단위거리를 주파한 횟수. 즉, distanceMoved % unit. unit 은 측정 단위로, 추후 변경
-  int timesLog = 1; // GPS data 를 받아오 횟수. InitialData 를 가지고 시작했기에 1로 초기화.
   int deltaTime = 0;
+  int averagePace = 0; // sec-1km 의미 : 단위거리(1km)를 주파하는데 걸릴 것으로 예상되는 시간(sec)
 
   List<LatLng> pathMoved = List<LatLng>.empty(growable: true); // 이번 러닝에서 이동한 경로. (위도,경도) 쌍의 리스트
   /*
@@ -63,7 +63,6 @@ class _RunningPageState extends State<RunningPage> {
       velocity : 현 시점의 순간 속도
       average_pace : 평균 페이스
    */
-  late double averageSpeed; // 평균 속도 = 순간 속도들의 평균
   List<Map<String, Object>> snapshots = List<Map<String, Object>>.empty(growable: true);
   List<Map<int, Object>> pace = List<Map<int, Object>>.empty(growable: true); // 단위 거리를 지난 시간을 기록하자.
 
@@ -163,11 +162,6 @@ class _RunningPageState extends State<RunningPage> {
     _logReference = _groupReference.doc(groupId).collection("log");
     initialLocation = widget.initialLocation;
     defaultTime = initialLocation.time!.toInt();
-    averageSpeed = initialLocation.speed ?? 1.0;
-    averageSpeed = double.parse(averageSpeed.toStringAsFixed(2));
-    if(averageSpeed <= 1){
-      averageSpeed = 1.0;
-    }
     var initData = {
       "runner": widget.userName,
       "accumulated_distance": 0,
@@ -221,9 +215,7 @@ class _RunningPageState extends State<RunningPage> {
                 height: 20,
               ),
               /*
-            움직인 거리, 평균 페이스 표시 화면
-            현재는 평균 페이스 대신 순간 속도를 보인다.
-            TODO : 평균 페이스 계산 구현
+                움직인 거리, 평균 페이스 표시 화면
              */
               StreamBuilder<LocationData>(
                   initialData: initialLocation,
@@ -265,23 +257,13 @@ class _RunningPageState extends State<RunningPage> {
                         final distanceDelta = distance.as(LengthUnit.Meter, cur, pathMoved.last);
                         // 움직인 거리 업데이트
                         distanceMoved += distanceDelta;
-
-                        // 평균 속도를 갱신
-                        timesLog += 1;
-                        if(currentSpeed != 0){
-                          averageSpeed = (averageSpeed + currentSpeed) / timesLog;
-                          averageSpeed = double.parse(averageSpeed.toStringAsFixed(2));
-                          if(averageSpeed <= 1){
-                            averageSpeed = 1.0;
-                          }
-                        }
-
                         //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
                         if (distanceMoved.toInt() ~/ unit1000Int > timesUnit) {
                           timesUnit++;
                           ttsGuide(
-                              times: timesUnit, unit: unit1Kilo, pace: TimeFormatting.timeFormatting(
-                              timeInSecond : (unit1000Int/averageSpeed).round()
+                              times: timesUnit, unit: unit1Kilo,
+                              pace: TimeFormatting.timeFormatting(
+                                timeInSecond : averagePace,
                               )
                           );
                           pace.add({
@@ -289,7 +271,10 @@ class _RunningPageState extends State<RunningPage> {
                           });
                         }
                         // 지난 시간 업데이트
-                        deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000;
+                        deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
+                        // 평균 페이스 갱신
+                        averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
+
                         // 기록 저장
                         var newData = {
                           "runner": widget.userName,
@@ -306,7 +291,6 @@ class _RunningPageState extends State<RunningPage> {
                         debugPrint("isMock: $_isMocked");
                       }
                       debugPrint("pathMoved: $pathMoved");
-                      debugPrint("averageSpeed: $averageSpeed");
                       debugPrint("isMock: $_isMocked");
                     }
                     return Center(
@@ -328,7 +312,7 @@ class _RunningPageState extends State<RunningPage> {
                               ),
                               Text(
                                 "평균 페이스 : ${TimeFormatting.timeFormatting(
-                                    timeInSecond : (unit1000Int/averageSpeed).round()
+                                    timeInSecond : averagePace,
                                 )}",
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
@@ -384,7 +368,7 @@ class _RunningPageState extends State<RunningPage> {
                                 startTime: defaultTime,
                                 passedTime: _runningSeconds,
                                 distanceMoved: distanceMoved,
-                                averageSpeed : averageSpeed,
+                                averagePace : averagePace,
                                 pace : pace
                               )));
                     },
