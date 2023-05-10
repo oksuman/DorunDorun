@@ -43,8 +43,8 @@ class _RunResultPageState extends State<RunResultPage> {
   void _saveLog() {
     var data = {
       "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
-      "running_time": TimeFormatting.timeFormatting(timeInSecond: widget.passedTime),
-      "average_pace": TimeFormatting.timeFormatting(
+      "running_time": TimeFormatting.timeWriteFormatting(timeInSecond: widget.passedTime),
+      "average_pace": TimeFormatting.timeWriteFormatting(
           timeInSecond : widget.averagePace,
       ),
       "total_distance": widget.distanceMoved,
@@ -61,11 +61,11 @@ class _RunResultPageState extends State<RunResultPage> {
     });
   }
 
-  void _saveLogWithPath() {
+  void _saveLogWithPath() async{
     var data = {
       "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
-      "running_time": TimeFormatting.timeFormatting(timeInSecond: widget.passedTime),
-      "average_pace": TimeFormatting.timeFormatting(
+      "running_time": TimeFormatting.timeWriteFormatting(timeInSecond: widget.passedTime),
+      "average_pace": TimeFormatting.timeWriteFormatting(
           timeInSecond : widget.averagePace,
       ),
       "total_distance": widget.distanceMoved,
@@ -73,13 +73,10 @@ class _RunResultPageState extends State<RunResultPage> {
       "pace" : widget.pace,
       "path": LatLngFormatting.fromLatLng(widget.pathMoved),
     };
-    _userReference
+    await _userReference
         .doc(currentUser.currentUser!.uid)
         .collection("log")
-        .add(data)
-        .then((doc) {
-      debugPrint("$doc");
-    });
+        .add(data);
   }
 
   @override
@@ -174,7 +171,7 @@ class _RunResultPageState extends State<RunResultPage> {
           ),
           const SizedBox(height: 5),
           Text(
-            "운동한 시간 : ${TimeFormatting.timeFormatting(timeInSecond: widget.passedTime)}",
+            "운동한 시간 : ${TimeFormatting.timeWriteFormatting(timeInSecond: widget.passedTime)}",
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: "SCDream",
@@ -185,7 +182,7 @@ class _RunResultPageState extends State<RunResultPage> {
           ),
           const SizedBox(height: 5),
           Text(
-            "평균 페이스 : ${TimeFormatting.timeFormatting(
+            "평균 페이스 : ${TimeFormatting.timeWriteFormatting(
                 timeInSecond : widget.averagePace.round()
             )}",
             textAlign: TextAlign.center,

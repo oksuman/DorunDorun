@@ -262,7 +262,7 @@ class _RunningPageState extends State<RunningPage> {
                           timesUnit++;
                           ttsGuide(
                               times: timesUnit, unit: unit1Kilo,
-                              pace: TimeFormatting.timeFormatting(
+                              pace: TimeFormatting.timeVoiceFormatting(
                                 timeInSecond : averagePace,
                               )
                           );
@@ -311,7 +311,7 @@ class _RunningPageState extends State<RunningPage> {
                                 ),
                               ),
                               Text(
-                                "평균 페이스 : ${TimeFormatting.timeFormatting(
+                                "평균 페이스 : ${TimeFormatting.timeWriteFormatting(
                                     timeInSecond : averagePace,
                                 )}",
                                 textAlign: TextAlign.center,

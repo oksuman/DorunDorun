@@ -41,12 +41,20 @@ class LatLngFormatting{
 }
 
 class TimeFormatting{
-  static String timeFormatting({required int timeInSecond}) {
+  static String timeWriteFormatting({required int timeInSecond}) {
     int sec = timeInSecond % 60;
     int min = (timeInSecond / 60).floor();
     String minute = min.toString().length <= 1 ? "0$min" : "$min";
     String second = sec.toString().length <= 1 ? "0$sec" : "$sec";
     return "$minute : $second";
+  }
+
+  static String timeVoiceFormatting({required int timeInSecond}) {
+    int sec = timeInSecond % 60;
+    int min = (timeInSecond / 60).floor();
+    String minute = min.toString().length <= 1 ? "0$min" : "$min";
+    String second = sec.toString().length <= 1 ? "0$sec" : "$sec";
+    return "$minute분 $second초";
   }
 }
 

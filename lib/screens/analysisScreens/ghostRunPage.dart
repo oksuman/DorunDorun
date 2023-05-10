@@ -67,7 +67,9 @@ class _GhostRunPageState extends State<GhostRunPage> {
   late final String userName;
   getUserName() async {
     await StorageService().getUserName().then(
-        (value) => userName
+        (value) {
+          userName = value!;
+        }
     );
   }
   ///////////////////////////////////////////////////////////////////////////////
@@ -80,7 +82,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
         .collection("log")
         .doc(widget.docID)
         .collection("sub_log")
-        .add(data);
+        .add(data).then((value) => debugPrint("ADD $value"));
   }
   /*
     data 에 들어가야할 항목
@@ -296,7 +298,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                         timesUnit++;
                         ttsGuideGhost1(
                             times: timesUnit, unit: unit1Kilo,
-                            pace: TimeFormatting.timeFormatting(
+                            pace: TimeFormatting.timeVoiceFormatting(
                               timeInSecond : averagePace,
                             ),
                             distanceDiff : logDistanceMoved - distanceMoved,
@@ -327,7 +329,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                               logTimesUnit++;
                               ttsGuideGhost2(
                                 times: logTimesUnit, unit: unit1Kilo,
-                                pace: TimeFormatting.timeFormatting(
+                                pace: TimeFormatting.timeVoiceFormatting(
                                   timeInSecond : logAveragePace,
                                 ),
                               );
@@ -353,7 +355,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                               children: [
                                 // 현재 페이스
                                 Text(
-                                  TimeFormatting.timeFormatting(
+                                  TimeFormatting.timeWriteFormatting(
                                     timeInSecond : averagePace,
                                   ),
                                   textAlign: TextAlign.center,
@@ -385,10 +387,9 @@ class _GhostRunPageState extends State<GhostRunPage> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Container(
-
                                   color: const Color.fromARGB(255, 0, 173, 181),
                                   child: const Text(
-                                    " KM ",
+                                    " PACE ",
                                     style: TextStyle(
                                         fontFamily: "SCDream",
                                         color: Color.fromARGB(255, 238, 238, 238), //white
@@ -403,7 +404,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
 
                                   color: const Color.fromARGB(255, 0, 173, 181),
                                   child: const Text(
-                                    " PACE ",
+                                    " KM ",
                                     style: TextStyle(
                                         fontFamily: "SCDream",
                                         color: Color.fromARGB(255, 238, 238, 238), //white
@@ -420,7 +421,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                               children: [
                                 // 과거 페이스
                                 Text(
-                                  TimeFormatting.timeFormatting(
+                                  TimeFormatting.timeWriteFormatting(
                                     timeInSecond : logAveragePace,
                                   ),
                                   textAlign: TextAlign.center,
@@ -486,7 +487,9 @@ class _GhostRunPageState extends State<GhostRunPage> {
                   onPressed: () {
                     _data = {
                       "runner" : userName,
-                      "average_pace" : averagePace,
+                      "average_pace" : TimeFormatting.timeWriteFormatting(
+                        timeInSecond : averagePace,
+                      ),
                       "total_distance" : distanceMoved,
                       "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
                     };
@@ -503,5 +506,11 @@ class _GhostRunPageState extends State<GhostRunPage> {
         )
       ),
     );
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    Wakelock.disable();
+    _runningTimer?.cancel();
   }
 }
