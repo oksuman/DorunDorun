@@ -301,7 +301,7 @@ class _RunningPageState extends State<RunningPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               Text(
-                                "움직인 거리 : ${(distanceMoved % 1000 / 1000).toStringAsFixed(2)} km",
+                                "움직인 거리 : ${(distanceMoved/unit1000Int).toStringAsFixed(2)} km",
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontFamily: "SCDream",

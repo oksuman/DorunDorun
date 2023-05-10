@@ -56,6 +56,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> logs
               /*
                 logs : 내 이전 운동 기록들
+
                 start_time : 운동을 시작한 시간
                 average_pace : 평균 페이스
                 total_distance : 총 달린 거리
@@ -139,7 +140,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                   distanceMoved: (logs.data!.docs[index]
                                               ["total_distance"] / 1000)
                                       .toStringAsFixed(2),
-
+                                  docID : logs.data!.docs[index].reference.id,
                                 )));
                       },
                     );

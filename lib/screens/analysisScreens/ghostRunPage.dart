@@ -4,30 +4,29 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:latlong2/latlong.dart';
-import '../homeScreens/runResultPage.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wakelock/wakelock.dart';
 import '../homeScreens/RunningSetting.dart';
 import '../analysisScreens/dataFormat.dart';
-import '../../models/group.dart';
 import '../../utilities/storageService.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GhostRunPage extends StatefulWidget {
-  final List<dynamic> pace;
+  final List<dynamic> logPace;
   final List<dynamic> snapshots;
-  final String runningTime;
   final String averagePace;
   final String distanceMoved;
+  final String docID;
   final LocationData initialLocation;
 
   const GhostRunPage({
     super.key,
-    required this.pace,
+    required this.logPace,
     required this.snapshots,
-    required this.runningTime,
     required this.averagePace,
     required this.distanceMoved,
+    required this.docID,
     required this.initialLocation,
   });
 
@@ -36,9 +35,10 @@ class GhostRunPage extends StatefulWidget {
 }
 
 class _GhostRunPageState extends State<GhostRunPage> {
+
   late final LocationData initialLocation;
   late final int defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
-  double distanceMoved = 0; // 이번 러닝에서 달린 누적 거리
+  num distanceMoved = 0; // 이번 러닝에서 달린 누적 거리
   int timesUnit = 0; // 단위거리를 주파한 횟수. 즉, distanceMoved % unit. unit 은 측정 단위로, 추후 변경
   int deltaTime = 0;
   int averagePace = 0; // sec-1km 의미 : 단위거리(1km)를 주파하는데 걸릴 것으로 예상되는 시간(sec)
@@ -50,12 +50,20 @@ class _GhostRunPageState extends State<GhostRunPage> {
   Location location = Location();
   Distance distance = const Distance();
 
+  //// 상대 LOG 관련 ////
   int logIndex = 0;
-  late int logNum ;
+  late int logNum ; // snapshot 원소 수, 기록이 몇개인지
+  int logTimesUnit = 0;
   late int logDeltaTime;
-  late int logDistanceMoved;
+  late num logDistanceMoved;
   int logAveragePace = 0;
+  bool logFinished = false;
+
   //// User 정보 관련 /////////////////////////////////////////////////////////////
+  final currentUser = FirebaseAuth.instance;
+  late final DocumentReference docRef;
+  // user 컬렉션 참조
+  final CollectionReference _userReference = FirebaseFirestore.instance.collection("users");
   late final String userName;
   getUserName() async {
     await StorageService().getUserName().then(
@@ -63,6 +71,28 @@ class _GhostRunPageState extends State<GhostRunPage> {
     );
   }
   ///////////////////////////////////////////////////////////////////////////////
+
+  //// 기록 남기기 관련 - 기존 기록에 꼬리표 //////////////////////////////////////////
+  late Map<String, dynamic> _data;
+  void _saveLog(Map<String, dynamic> data){
+    _userReference
+        .doc(currentUser.currentUser!.uid)
+        .collection("log")
+        .doc(widget.docID)
+        .collection("sub_log")
+        .add(data);
+  }
+  /*
+    data 에 들어가야할 항목
+    "runner" : String 누구의 기록인지
+    "average_pace" : String 평균 페이스
+    "total_distance" : number 총 달린 거리
+    "start_time" : datetime 운동 시작 날짜 (년,월,일,시간..)
+
+   */
+  ///////////////////////////////////////////////////////////////////////////////
+
+
   //// Timer 관련 ////////////////////////////////////////////////////////////////
   Timer? _runningTimer;
   int _runningSeconds = 0; // 러닝이 시작하고 흐른 시간(seconds)
@@ -120,13 +150,31 @@ class _GhostRunPageState extends State<GhostRunPage> {
     await tts.setVoice(voice);
   }
 
-  void ttsGuide({
+  void ttsGuideGhost1({
+    required int times,
+    required String unit,
+    required String pace,
+    required num distanceDiff,
+  }) async {
+    var guideVerse = (distanceDiff > 0) ? "앞에 있습니다" : "뒤에 있습니다";
+
+    await tts
+        .speak("${times.toString()} $unit 지점을 통과하였습니다. 현재 페이스는 $pace 입니다. 현재 상대는 ${distanceDiff.abs()} 미터 $guideVerse");
+  }
+
+  void ttsGuideGhost2({
     required int times,
     required String unit,
     required String pace,
   }) async {
+
     await tts
-        .speak("${times.toString()} $unit 지점을 통과하였습니다. 현재 페이스는 $pace 입니다.");
+        .speak("상대가 ${times.toString()} $unit 지점을 통과하였습니다. 상대의 현재 페이스는 $pace 입니다.");
+  }
+
+  void ttsFinish() async{
+    await tts
+        .speak("상대방의 운동이 종료되었습니다.");
   }
   //////////////////////////////////////////////////////////////////////////////////////
 
@@ -246,11 +294,12 @@ class _GhostRunPageState extends State<GhostRunPage> {
                       //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
                       if (distanceMoved.toInt() ~/ unit1000Int > timesUnit) {
                         timesUnit++;
-                        ttsGuide(
+                        ttsGuideGhost1(
                             times: timesUnit, unit: unit1Kilo,
                             pace: TimeFormatting.timeFormatting(
                               timeInSecond : averagePace,
-                            )
+                            ),
+                            distanceDiff : logDistanceMoved - distanceMoved,
                         );
                         pace.add({
                           timesUnit : deltaTime
@@ -261,17 +310,32 @@ class _GhostRunPageState extends State<GhostRunPage> {
                       // 평균 페이스 갱신
                       averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
 
-                      if(deltaTime >= widget.snapshots[logIndex]){
-                        logIndex++;
-                        if(logIndex == logNum-1){
-                          // LOG 종료
-                        }
-                        else{
-                          logDeltaTime = widget.snapshots[logIndex]['delta_time'];
-                          logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
-                          logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
+                      //// LOG 와 관련된 작업
+                      if(!logFinished){
+                        if(deltaTime >= widget.snapshots[logIndex]['delta_time']){
+                          logIndex++;
+                          if(logIndex == logNum-1){
+                            ttsFinish();
+                            logFinished = true;
+                          }
+                          else{
+                            logDeltaTime = widget.snapshots[logIndex]['delta_time'];
+                            logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
+                            logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
+                            // 상대가 단위거리 주파했는지 확인
+                            if (distanceMoved.toInt() ~/ unit1000Int > logTimesUnit) {
+                              logTimesUnit++;
+                              ttsGuideGhost2(
+                                times: logTimesUnit, unit: unit1Kilo,
+                                pace: TimeFormatting.timeFormatting(
+                                  timeInSecond : logAveragePace,
+                                ),
+                              );
+                            }
+                          }
                         }
                       }
+
                       previousLatitude = currentLatitude;
                       previousLongitude = currentLongitude;
                     }
@@ -305,7 +369,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                                 ),
                                 Text(
                                   // 현재 움직인 거리
-                                  (distanceMoved % 1000 / 1000).toStringAsFixed(2),
+                                  (distanceMoved/unit1000Int).toStringAsFixed(2),
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontFamily: "SCDream",
@@ -372,7 +436,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                                 ),
                                 Text(
                                   // 과거 움직인 거리
-                                  (logDistanceMoved % 1000 / 1000).toStringAsFixed(2),
+                                  (logDistanceMoved/unit1000Int).toStringAsFixed(2),
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontFamily: "SCDream",
@@ -420,6 +484,13 @@ class _GhostRunPageState extends State<GhostRunPage> {
                 ),
                 FloatingActionButton(
                   onPressed: () {
+                    _data = {
+                      "runner" : userName,
+                      "average_pace" : averagePace,
+                      "total_distance" : distanceMoved,
+                      "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
+                    };
+                    _saveLog(_data);
                     Navigator.pop(context);
                   },
                   heroTag: 'strop running',

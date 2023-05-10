@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -13,6 +14,7 @@ class DetailPage extends StatefulWidget {
   final String runningTime;
   final String averagePace;
   final String distanceMoved;
+  final String docID;
 
   // TODO : 임시방편 주먹구구식 코드 재개발
   // TODO : snapshots 추가
@@ -26,6 +28,7 @@ class DetailPage extends StatefulWidget {
     required this.runningTime,
     required this.averagePace,
     required this.distanceMoved,
+    required this.docID,
   });
 
   @override
@@ -157,11 +160,11 @@ class _DetailPageState extends State<DetailPage> {
                 await location.getLocation().then((res) {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => GhostRunPage(
-                        pace : widget.pace,
+                        logPace : widget.pace,
                         snapshots: widget.snapshots,
-                        runningTime: widget.runningTime,
                         averagePace: widget.averagePace,
                         distanceMoved:  widget.distanceMoved,
+                        docID: widget.docID,
                         initialLocation: res,
                       )));
                 });

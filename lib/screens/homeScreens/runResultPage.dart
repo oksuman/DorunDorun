@@ -59,7 +59,6 @@ class _RunResultPageState extends State<RunResultPage> {
         .then((doc) {
       debugPrint("$doc");
     });
-    ;
   }
 
   void _saveLogWithPath() {
