@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dataFormat.dart';
 import 'package:location/location.dart';
 import 'ghostRunPage.dart';
+import '../homeScreens/RunningSetting.dart';
 
 class DetailPage extends StatefulWidget {
   final List<dynamic>? pathMoved;
@@ -206,7 +207,7 @@ class _DetailPageState extends State<DetailPage> {
                                             width: 20,
                                           ),
                                           Text(
-                                              "${subLogs.data!.docs[index]['total_distance']} km",
+                                              "${(subLogs.data!.docs[index]['total_distance']  / unit1000Int).toStringAsFixed(2) } km",
                                               style: const TextStyle(
                                                   fontFamily: "SCDream",
                                                   fontWeight: FontWeight.bold,
@@ -239,6 +240,7 @@ class _DetailPageState extends State<DetailPage> {
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () async {
+                      Navigator.pop(context);
                       await location.getLocation().then((res) {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => GhostRunPage(

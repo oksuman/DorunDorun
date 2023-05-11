@@ -162,7 +162,7 @@ class _RunResultPageState extends State<RunResultPage> {
           ),
           const SizedBox(height: 10),
           Text(
-            "달린 거리 : ${(widget.distanceMoved % 1000 / 1000).toStringAsFixed(2)} km",
+            "달린 거리 : ${(widget.distanceMoved / unit1000Int).toStringAsFixed(2)} km",
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: "SCDream",
