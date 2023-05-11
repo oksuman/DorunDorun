@@ -76,6 +76,7 @@ class _StartPageState extends State<StartPage> {
 
   @override
   Widget build(BuildContext context) {
+    _getMyData();
     return Scaffold(
       backgroundColor: Colors.white,
       extendBodyBehindAppBar: true,
@@ -353,7 +354,10 @@ class _StartPageState extends State<StartPage> {
                       height: 80,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(50),
-                        color: const Color.fromARGB(255, 0, 173, 181), //teal
+                        color: (_ugroup=="")
+                            ?const Color.fromARGB(255, 0, 173, 181)
+                            :Colors.lightBlueAccent
+                        , //teal
                       ),
                       child: IconButton(
                         //달리기 버튼
