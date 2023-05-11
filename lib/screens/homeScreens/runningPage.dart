@@ -221,78 +221,77 @@ class _RunningPageState extends State<RunningPage> {
                   initialData: initialLocation,
                   stream: location.onLocationChanged,
                   builder: (context, stream) {
-                    if(_isRunning && !_isMocked){
-                    /*
-                    LocationData
-                    latitude : 위도
-                    longitude : 경도
-                    time : timestamp, milliseconds
-                    accuracy : 정확도
-                    velocity : 속도, 기본 단위는 m/s
-                    */
-                      final changedLocation = stream.data; // 새로 받아온 gps 정보
 
-                      // 가장 마지막에 기록된 위치 정보
-                      final previousLatitude = pathMoved.last.latitude;
-                      final previousLongitude = pathMoved.last.longitude;
+                    final changedLocation = stream.data; // 새로 받아온 gps 정보
+                    // 가장 마지막에 기록된 위치 정보
+                    final previousLatitude = pathMoved.last.latitude;
+                    final previousLongitude = pathMoved.last.longitude;
 
-                      // 받아온 gps 정보로 변수 초기화. 받아온 값이 null 이라면 이전 값을 넣거나 0으로 초기화
-                      final currentLatitude = changedLocation?.latitude ?? previousLatitude;
-                      final currentLongitude = changedLocation?.longitude ?? previousLongitude;
-                      _isMocked = changedLocation?.isMock ?? true;
+                    // 받아온 gps 정보로 변수 초기화. 받아온 값이 null 이라면 이전 값을 넣거나 0으로 초기화
+                    final currentLatitude = changedLocation?.latitude ?? previousLatitude;
+                    final currentLongitude = changedLocation?.longitude ?? previousLongitude;
 
-                      // 임시적으로 존재하는 변수들
-                      final currentSpeed = changedLocation?.speed ?? 0;
-                      final currentTime = changedLocation?.time ?? 0;
+                    if(currentLatitude != previousLatitude || currentLongitude != previousLongitude){
+                      final cur = LatLng(currentLatitude, currentLongitude);
+                      pathMoved.add(cur);
 
-                      // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 두 값이 다르고 && 정확도 값이 5보다 작은 경우에만 갱신
+                      if(_isRunning && !_isMocked){
                       /*
-                      정확도 : 사용자가 해당 gps 데이터 근방 x미터(즉 반지름이 x인 원 안)에 있을 확률(신뢰도)가 y 퍼센트 이상이다.
-                      에서 x값을 당당하는 것이 accuracy 이다.
-                     */
-                      if ((currentLatitude != previousLatitude ||
-                          currentLongitude != previousLongitude) &&
-                          (changedLocation?.accuracy ?? 10) < 10) {
-                        final cur = LatLng(currentLatitude, currentLongitude);
-                        final distanceDelta = distance.as(LengthUnit.Meter, cur, pathMoved.last);
-                        // 움직인 거리 업데이트
-                        distanceMoved += distanceDelta;
-                        //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
-                        if (distanceMoved.toInt() ~/ unit1000Int > timesUnit) {
-                          timesUnit++;
-                          ttsGuide(
-                              times: timesUnit, unit: unit1Kilo,
-                              pace: TimeFormatting.timeVoiceFormatting(
-                                timeInSecond : averagePace,
-                              )
-                          );
-                          pace.add({
-                            timesUnit : deltaTime
-                          });
-                        }
-                        // 지난 시간 업데이트
-                        deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
-                        // 평균 페이스 갱신
-                        averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
+                      LocationData
+                      latitude : 위도
+                      longitude : 경도
+                      time : timestamp, milliseconds
+                      accuracy : 정확도
+                      velocity : 속도, 기본 단위는 m/s
+                      */
+                        _isMocked = changedLocation?.isMock ?? true;
 
-                        // 기록 저장
-                        var newData = {
-                          "runner": widget.userName,
-                          "accumulated_distance": distanceMoved,
-                          "delta_time": deltaTime,
-                          "velocity": currentSpeed,
-                        };
-                        _logReference.add(newData);
-                        snapshots.add(newData);
-                        // 지나온 경로에 새로운 포인트 추가
-                        pathMoved.add(cur);
-                        debugPrint("in if ");
-                        debugPrint("distanceDelta : $distanceDelta");
-                        debugPrint("isMock: $_isMocked");
+                        // 임시적으로 존재하는 변수들
+                        final currentSpeed = changedLocation?.speed ?? 0;
+                        final currentTime = changedLocation?.time ?? 0;
+
+                        // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 두 값이 다르고 && 정확도 값이 5보다 작은 경우에만 갱신
+                        /*
+                        정확도 : 사용자가 해당 gps 데이터 근방 x미터(즉 반지름이 x인 원 안)에 있을 확률(신뢰도)가 y 퍼센트 이상이다.
+                        에서 x값을 당당하는 것이 accuracy 이다.
+                       */
+                        if ((changedLocation?.accuracy ?? 10) < 10) {
+                          final distanceDelta = distance.as(LengthUnit.Meter, cur, pathMoved.last);
+                          // 움직인 거리 업데이트
+                          distanceMoved += distanceDelta;
+                          //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
+                          if (distanceMoved.toInt() ~/ unit1000Int > timesUnit) {
+                            timesUnit++;
+                            ttsGuide(
+                                times: timesUnit, unit: unit1Kilo,
+                                pace: TimeFormatting.timeVoiceFormatting(
+                                  timeInSecond : averagePace,
+                                )
+                            );
+                            pace.add({
+                              timesUnit : deltaTime
+                            });
+                          }
+                          // 지난 시간 업데이트
+                          deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
+                          // 평균 페이스 갱신
+                          averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
+
+                          // 기록 저장
+                          var newData = {
+                            "runner": widget.userName,
+                            "accumulated_distance": distanceMoved,
+                            "delta_time": deltaTime,
+                            "velocity": currentSpeed,
+                          };
+                          _logReference.add(newData);
+                          snapshots.add(newData);
+                          // 지나온 경로에 새로운 포인트 추가
+                        }
                       }
-                      debugPrint("pathMoved: $pathMoved");
-                      debugPrint("isMock: $_isMocked");
+
                     }
+
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
