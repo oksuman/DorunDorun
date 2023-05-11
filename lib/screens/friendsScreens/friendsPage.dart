@@ -202,6 +202,21 @@ class _FriendsPageState extends State<FriendsPage> {
                                         ),
                                         child: IconButton(
                                           //친구 끝내기
+                                          icon: Icon(Icons.list_sharp),
+                                          onPressed: () async {
+                                            Navigator.pushNamed(context, "/toAnalysisPage",
+                                                arguments: documentSnapshot['id']);
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(width: 5,),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(5),
+                                          color: Color.fromARGB(255, 0, 173, 181), //teal
+                                        ),
+                                        child: IconButton(
+                                          //친구 끝내기
                                           icon: Icon(Icons.volume_up_sharp),
                                           onPressed: () async {
 

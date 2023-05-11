@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dataFormat.dart';
+import '../../utilities/storageService.dart';
 
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({Key? key}) : super(key: key);
@@ -13,21 +14,46 @@ class AnalysisPage extends StatefulWidget {
 }
 
 class _AnalysisPageState extends State<AnalysisPage> {
+  String? _thisUserId = ""; //로그 확인할 아이디
+  String _uid = "";
+  String _uname = "";
+  String _ugroup = "";
   final currentUser = FirebaseAuth.instance;
 
   // user 컬렉션 참조
   final CollectionReference _userReference =
       FirebaseFirestore.instance.collection("users");
 
+  _getMyData() async {
+    await StorageService().getUserID().then((value) {
+      setState(() {
+        _uid = value!;
+      });
+    });
+    await StorageService().getUserName().then((value) {
+      setState(() {
+        _uname = value!;
+      });
+    });
+    await StorageService().getUserGroup().then((value) {
+      setState(() {
+        _ugroup = value!;
+      });
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _getMyData();
     initializeDateFormatting();
   }
 
   @override
   Widget build(BuildContext context) {
+    _thisUserId = ModalRoute.of(context)?.settings.arguments as String?; //인자 전 페이지에서 받아오기
+    //print(_uid);
     return Scaffold(
         appBar: AppBar(
           // 앱 상단 바
@@ -35,7 +61,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
           iconTheme:
               const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
           //white
-          title: const Text(
+          title: Text(
             "결과",
             style: TextStyle(
                 fontFamily: "SCDream",
@@ -47,9 +73,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
           //teal
           centerTitle: true,
         ),
-        body: StreamBuilder(
+        body: (_uid!="")?StreamBuilder(
             stream: _userReference
-                .doc(currentUser.currentUser!.uid)
+                .doc((_thisUserId!=null)?_thisUserId:_uid) //전달받은 id or current user id
                 .collection("log")
                 .orderBy('start_time', descending: true)
                 .snapshots(),
@@ -151,6 +177,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
               } else {
                 return const Center(child: CircularProgressIndicator());
               }
-            }));
+            })
+            : Center(child: CircularProgressIndicator())
+    );
   }
 }
