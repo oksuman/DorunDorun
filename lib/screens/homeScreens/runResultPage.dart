@@ -61,7 +61,7 @@ class _RunResultPageState extends State<RunResultPage> {
     });
   }
 
-  void _saveLogWithPath() async{
+  Future<void> _saveLogWithPath() async{
     var data = {
       "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
       "running_time": TimeFormatting.timeWriteFormatting(timeInSecond: widget.passedTime),
@@ -71,7 +71,9 @@ class _RunResultPageState extends State<RunResultPage> {
       "total_distance": widget.distanceMoved,
       "snapshots": widget.snapshots,
       "pace" : widget.pace,
-      "path": LatLngFormatting.fromLatLng(widget.pathMoved),
+      "path": (widget.pathMoved.length > 300) ?
+      LatLngFormatting.fromLatLngCompact(widget.pathMoved, 100) :
+      LatLngFormatting.fromLatLng(widget.pathMoved),
     };
     await _userReference
         .doc(currentUser.currentUser!.uid)
@@ -195,8 +197,8 @@ class _RunResultPageState extends State<RunResultPage> {
           ),
           const SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () {
-              _saveLogWithPath();
+            onPressed: () async {
+              await _saveLogWithPath();
               Navigator.pop(context);
               Navigator.pushNamed(context, "/toNavigationBarPage");
             },

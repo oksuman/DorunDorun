@@ -38,6 +38,19 @@ class LatLngFormatting{
     });
     return geoPoints;
   }
+
+  // 경로 압축해서 formatting
+  static List<dynamic> fromLatLngCompact(List<LatLng> pathMoved, int factoring){
+    List<dynamic> geoPoints = List<dynamic>.empty(growable : true);
+    var indexGrow = pathMoved.length ~/ factoring;
+    for(int i=0; i<pathMoved.length; i+= indexGrow){
+      geoPoints.add({
+        "latitude" : pathMoved[i].latitude,
+        "longitude" : pathMoved[i].longitude,
+      });
+    }
+    return geoPoints;
+  }
 }
 
 class TimeFormatting{
