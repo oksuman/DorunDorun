@@ -435,12 +435,8 @@ class _MakeUserPageState extends State<MakeUserPage> {
                                 _userHeight,
                                 _userWeight,
                               );
-                              await StorageService().saveUserLoggedInStatus("true"); //스토리지에 로그인 정보 저장
-                              await StorageService().saveUserName(_userName); //스토리지에 닉네임 저장
-                              await StorageService().saveUserEmail(_newUser.user!.email!); //스토리지에 이메일 저장
-                              await StorageService().saveUserID(_newUser.user!.uid); //스토리지에 파이어베이스 id 저장
-                              await StorageService().saveUserGroup(""); //스토리지에 joined group 저장
-                              Navigator.pushNamedAndRemoveUntil(context, '/toNavigationBarPage', (route) => false); //로그인
+                              Navigator.pushNamedAndRemoveUntil(context, '/toInitialPage', (route) => false); //로그인
+                              Navigator.pushNamed(context, '/toSignInPage');
                             }catch(e){
                               _showNameAlert();
                             }

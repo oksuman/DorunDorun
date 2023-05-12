@@ -9,6 +9,7 @@ class StorageService {
   static String _userLoggedInKey = "LOGGEDINKEY";
   static String _userNameKey = "USERNAMEKEY";
   static String _userEmailKey = "USEREMAILKEY";
+  static String _userPwdKey = "USERPWDKEY";
   static String _userIDKey = "USERIDKEY";
   static String _userGroupKey = "USERGROUPKEY";
 
@@ -29,6 +30,10 @@ class StorageService {
   //이메일 저장
   Future saveUserEmail(String userEmail) async {
     return await _storage.write(key: _userEmailKey, value: userEmail);
+  }
+
+  Future saveUserPwd(String userPwd) async {
+    return await _storage.write(key: _userPwdKey, value: userPwd);
   }
 
   //유저 파이어베이스 id 저장
@@ -57,6 +62,10 @@ class StorageService {
     return _storage.read(key: _userEmailKey);
   }
 
+  Future<String?> getUserPwd() async {
+    return _storage.read(key: _userPwdKey);
+  }
+
   //유저 파이어베이스 id 받아오기
   Future<String?> getUserID() async {
     return _storage.read(key: _userIDKey);
@@ -65,6 +74,10 @@ class StorageService {
   //유저 joined group 받아오기
   Future<String?> getUserGroup() async {
     return _storage.read(key: _userGroupKey);
+  }
+
+  Future deleteAll() async{
+    return await _storage.deleteAll();
   }
 
 }

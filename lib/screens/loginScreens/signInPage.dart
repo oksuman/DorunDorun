@@ -154,6 +154,7 @@ class _SignInPageState extends State<SignInPage> {
                               await StorageService().saveUserLoggedInStatus("true"); //스토리지에 로그인 정보 저장
                               await StorageService().saveUserName(snapshot.docs[0]['fullName']); //스토리지에 닉네임 저장
                               await StorageService().saveUserEmail(_userEmail); //스토리지에 이메일 저장
+                              await StorageService().saveUserPwd(_userPassword);
                               await StorageService().saveUserID(snapshot.docs[0]['id']); //스토리지에 파이어베이스 id 저장
                               await StorageService().saveUserGroup(snapshot.docs[0]['group']); //스토리지에 joined group 저장
                               Navigator.pushNamedAndRemoveUntil(context, '/toNavigationBarPage', (route) => false); //로그인

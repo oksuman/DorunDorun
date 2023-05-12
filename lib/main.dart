@@ -1,5 +1,8 @@
+
+
 import 'package:dorun_dorun/Screens/analysisScreens/analysisPage.dart';
 import 'package:dorun_dorun/screens/homeScreens/makeRoomPage.dart';
+import 'package:dorun_dorun/screens/loginScreens/splashPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -31,7 +34,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         routes: {
-          '/': (context) => const InitialPage(), //시작 로그인 화면
+          '/': (context) => SplashPage(), //스플래시화면
+          '/toInitialPage': (context) => const InitialPage(), //시작 페이지 이동
           '/toSignInPage': (context) => const SignInPage(), //로그인 페이지 이동
           '/toSignUpPage': (context) => const SignUpPage(), //계정생성 페이지 이동
           '/toMakeUserPage': (context) => const MakeUserPage(), //유저 정보 작성 페이지 이동
