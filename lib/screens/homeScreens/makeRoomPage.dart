@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 
 import '../../models/group.dart';
@@ -29,7 +30,6 @@ class MakeRoomPage extends StatefulWidget {
 }
 
 class _MakeRoomPageState extends State<MakeRoomPage> {
-  int _modeNum = 0; //모드 설정(0: 기본, 1: 협동, 3: 경쟁)
   int _membersNum = 0; //그룹 멤버 수
   bool _isAdmin = false; //admin 여부
   List<bool> _myIdxList = List.filled(4, false); //멤버 리스트 중 내 인덱스 위치(0~3)
@@ -39,6 +39,12 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   String _gid = ""; //인자로 전달받은 그룹 아이디
   String _thisGroupId = ""; //현재 그룹에 저장할 아이디
   Group _thisGroup = new Group(); //그룹 클래스
+  String _modeName = "basic"; //모드 설정("basic": 기본, "coop": 협동, "comp": 경쟁)
+  String _basicSetting = "목표 거리"; //목표 거리, 목표 시간, 스피드 측정
+  Map<String,double> _basicGoal = {
+    "목표 거리": 5.0,
+    "목표 시간": 30, //(시간:분 = 0030)형식
+  };
 
   //스트림 종료 위해(최적화)
   StreamSubscription? _groupDocListen = null; //그룹 다큐멘트 스트림 구독
@@ -301,7 +307,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _modeNum = 0;
+                        _modeName = "basic";
                       });
                     },
                     child: Container(
@@ -310,7 +316,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       height: 40,
                       child: Center(
                         child: Text("기본모드",
-                            style: (_modeNum != 0)
+                            style: (_modeName != "basic")
                                 ? const TextStyle(
                               fontFamily: "SCDream",
                               fontSize: 14,
@@ -328,7 +334,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _modeNum = 1;
+                        _modeName = "coop";
                       });
                     },
                     child: Container(
@@ -337,7 +343,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       height: 40,
                       child: Center(
                         child: Text("협동모드",
-                            style: (_modeNum != 1)
+                            style: (_modeName != "coop")
                                 ? const TextStyle(
                               fontFamily: "SCDream",
                               fontSize: 14,
@@ -355,7 +361,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _modeNum = 2;
+                        _modeName = "comp";
                       });
                     },
                     child: Container(
@@ -365,7 +371,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       child: Center(
                         child: Text(
                           "경쟁모드",
-                          style: (_modeNum != 2)
+                          style: (_modeName != "comp")
                               ? const TextStyle(
                             fontFamily: "SCDream",
                             fontSize: 14,
@@ -717,64 +723,8 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height-531, //351+56+24=431
-        child: (_modeNum == 0)?
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top:20),
-              child: Text("목표를 설정하고 자신의 러닝을 기록하는 기본적인 모드입니다.",
-                style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 34, 40, 49), //black
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            const Text("목표 거리",
-              style: TextStyle(
-                fontFamily: "SCDream",
-                color: Color.fromARGB(255, 34, 40, 49), //black
-                fontWeight: FontWeight.bold,
-                fontSize: 30,
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                IconButton(
-                    onPressed: (){
-
-                    },
-                    icon: const Icon(Icons.arrow_drop_down_sharp)
-                ),
-                const Text("5.00 KM",
-                  style: TextStyle(
-                    fontFamily: "SCDream",
-                    color: Color.fromARGB(255, 34, 40, 49), //black
-                    fontWeight: FontWeight.w900,
-                    fontSize: 60,
-                  ),
-                ),
-                IconButton(
-                    onPressed: (){
-
-                    },
-                    icon: const Icon(Icons.arrow_drop_up_sharp)
-                )
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: IconButton(
-                  onPressed: (){
-
-                  },
-                  icon: const Icon(Icons.settings_sharp)
-              ),
-            )
-          ],
-        ):(_modeNum == 1)?
+        child: (_modeName == "basic")?
+        _basicModeWidget():(_modeName == "coop")?
         Column(
           children: const [
             Padding(
@@ -789,7 +739,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             ),
 
           ],
-        ):(_modeNum == 2)?
+        ):(_modeName == "comp")?
         Column(
           children: const [
             Padding(
@@ -804,7 +754,220 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             ),
 
           ],
-        ):const CircularProgressIndicator()
+        ):Center(child: const CircularProgressIndicator())
     );
   }
+
+  Widget _basicModeWidget(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top:20),
+          child: Text("목표를 설정하고 자신의 러닝을 기록하는 기본적인 모드입니다.",
+            style: TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontSize: 14,
+            ),
+          ),
+        ),
+        SizedBox(height: 10,),
+        TextButton(
+            onPressed: (){
+              showCupertinoModalPopup(context: context,
+                builder: (BuildContext context) => CupertinoActionSheet(
+                  //title: const Text(""),
+                  actions: [
+                    CupertinoActionSheetAction(
+                      child: const Text("목표 거리"),
+                      onPressed: () {
+                        _basicSetting = "목표 거리";
+                        Navigator.pop(context);
+                      },
+                    ),
+                    CupertinoActionSheetAction(
+                      child: const Text("목표 시간"),
+                      onPressed: () {
+                        _basicSetting = "목표 시간";
+                        Navigator.pop(context);
+                      },
+                    ),
+                    CupertinoActionSheetAction(
+                      child: const Text("스피드 측정"),
+                      onPressed: () {
+                        _basicSetting = "스피드 측정";
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ));
+              },
+            child: Text(_basicSetting,
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 57, 62, 70), //grey
+                fontWeight: FontWeight.bold,
+                fontSize: 30,
+              ),
+            ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(bottom:20),
+          child: TextButton(
+            onPressed: (){
+              if(_basicSetting!="스피드 측정"){
+                showDialog(
+                  // 메시지 창 뛰움
+                    context: context,
+                    builder: (context) {
+                      double tempNum = 0;
+                      return AlertDialog(
+                        //메시지 창
+                          contentPadding: const EdgeInsets.all(10),
+                          backgroundColor:
+                          const Color.fromARGB(255, 238, 238, 238), //white
+                          content: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              height: 160,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                Container(
+                                  child: Text(_basicSetting,
+                                    style: const TextStyle(
+                                        fontFamily: "SCDream",
+                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: MediaQuery.of(context).size.width * 0.8-80,
+                                      child: Form(
+                                        child: TextFormField(
+                                          decoration: InputDecoration(
+                                            counterText: ""
+                                          ),
+                                          maxLength: 4,
+                                          keyboardType: TextInputType.number,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                                          ],
+                                          textAlign: TextAlign.end,
+                                          onTap: () {
+                                            setState(() {
+                                            });
+                                          },
+                                          onChanged: (value) async {
+                                            //텍스트 필드 값 바뀔 시
+                                            setState(() {
+                                              if(value==null){
+                                                tempNum = 0;
+                                              }else{
+                                                tempNum = double.parse(value);
+                                              }
+                                            });
+                                          },
+                                          onSaved: (value) async {
+                                            setState(() {
+                                              if(value==null){
+                                                tempNum = 0;
+                                              }else{
+                                                tempNum = double.parse(value);
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    Text((_basicSetting=="목표 거리")?"KM":"분",
+                                      style: const TextStyle(
+                                          fontFamily: "SCDream",
+                                          color: Color.fromARGB(255, 34, 40, 49), //black
+                                          fontSize: 16,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(5),
+                                          ),
+                                          backgroundColor: Colors.grey,
+                                          elevation: 0,
+                                        ),
+                                        child: Text("취소",
+                                          style: TextStyle(
+                                            fontFamily: "SCDream",
+                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          Navigator.of(context).pop();
+                                        }
+                                    ),
+                                    SizedBox(width: 5,),
+                                    ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                          backgroundColor: const Color.fromARGB(
+                                              255, 0, 173, 181), //teal
+                                          elevation: 0,
+                                        ),
+                                        child: Text("설정",
+                                          style: TextStyle(
+                                            fontFamily: "SCDream",
+                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          if(tempNum!=0){
+                                            _basicGoal[_basicSetting] = tempNum;
+                                          }
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+
+                                  ],
+                                )
+                              ]
+                              )
+                          ));
+                    });
+              }
+
+            },
+            child: Text((_basicSetting=="목표 거리")
+                ?_basicGoal[_basicSetting]!.toStringAsFixed(2)+" KM"
+                :(_basicSetting=="목표 시간")
+                ?_basicGoal[_basicSetting]!.toStringAsFixed(0)+" 분"
+                :"랩타임",
+              style: TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 57, 62, 70), //grey
+                fontWeight: FontWeight.w900,
+                fontSize: 60,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
 }

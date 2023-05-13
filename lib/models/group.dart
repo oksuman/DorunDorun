@@ -9,6 +9,10 @@ class Group{
   String _adminName = "";
   List<String> _membersId = [];
   List<String> _membersName = [];
+  String _groupMode = "";
+  String _basicSetting = "";
+  Map<String, double> _basicGoal = {"거리":5.0, "시간":30};
+
 
   //그룹 GetSet
   setGroupId(String gid){
