@@ -30,7 +30,6 @@ class MakeRoomPage extends StatefulWidget {
 }
 
 class _MakeRoomPageState extends State<MakeRoomPage> {
-  int _membersNum = 0; //그룹 멤버 수
   bool _isAdmin = false; //admin 여부
   List<bool> _myIdxList = List.filled(4, false); //멤버 리스트 중 내 인덱스 위치(0~3)
   String _uid = ""; //내 아이디
@@ -39,12 +38,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   String _gid = ""; //인자로 전달받은 그룹 아이디
   String _thisGroupId = ""; //현재 그룹에 저장할 아이디
   Group _thisGroup = new Group(); //그룹 클래스
-  String _modeName = "basic"; //모드 설정("basic": 기본, "coop": 협동, "comp": 경쟁)
-  String _basicSetting = "목표 거리"; //목표 거리, 목표 시간, 스피드 측정
-  Map<String,double> _basicGoal = {
-    "목표 거리": 5.0,
-    "목표 시간": 30, //(시간:분 = 0030)형식
-  };
 
   //스트림 종료 위해(최적화)
   StreamSubscription? _groupDocListen = null; //그룹 다큐멘트 스트림 구독
@@ -124,22 +117,27 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     final DocumentReference groupsDocument = groupsCollection.doc(_thisGroupId); //그룹 다큐멘트
     _groupDocListen = groupsDocument.snapshots().listen((DocumentSnapshot documentSnapshot) { //그룹 다큐멘트 스트림으로 계속 듣기
       try{
-        _groupData = documentSnapshot.data()! as Map<String,dynamic>; //다큐멘트 데이터
+        if(documentSnapshot.data()!=null)
+          _groupData = documentSnapshot.data()! as Map<String,dynamic>; //다큐멘트 데이터
         // 그룹 객체 업데이트
         _thisGroup.setGroupId(_groupData["groupId"]);
         _thisGroup.setAdminId(_groupData["adminId"]);
         _thisGroup.setAdminName(_groupData["adminName"]);
         _thisGroup.setMembersId(_groupData["membersId"]);
         _thisGroup.setMembersName(_groupData["membersName"]);
-        _membersNum = _groupData["membersNum"]; //멤버수 받아오기
+        _thisGroup.setMembersReady(_groupData["membersReady"]);
+        _thisGroup.setGroupMode(_groupData["groupMode"]);
+        _thisGroup.setBasicSetting(_groupData["basicSetting"]);
+        _thisGroup.setBasicGoal(_groupData["basicGoal"]);
         _isAdmin = (_thisGroup.getAdminId()==_uid); //내 아이디가 그룹의 admin 아이디와 같으면: isAdmin을 true로
-        for(int i = 0; i<_myIdxList.length; i++){
+
+        for(int i = 0; i<_thisGroup.getMembersNum(); i++){
           if(_thisGroup.getMembersId()[i]==_uid){
             _myIdxList[i] = true;
           }
         } //내인덱스리스트 초기화(내가 몇번째?)
       }catch(e){ //그룹아이디 받아오기 전에 오류들 흘려주기
-
+        debugPrint("$e");
       }finally{
         if(mounted){ //위젯 삭제 후 새로고침 오류 방지용
           setState(() { //앱 새로고침
@@ -259,8 +257,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           //방 나가기 버튼
           IconButton(
             onPressed: ()async{
+              StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
               Navigator.of(context).pop(); //방 나가기
-              if(_membersNum>1){ //멤버가 2명 이상일 때,
+              if(_thisGroup.getMembersNum()>1){ //멤버가 2명 이상일 때,
                 if(_isAdmin){ //내가 admin 이면,
                   final nAdminId = _thisGroup.getMembersId()[1];
                   final nAdminName = _thisGroup.getMembersName()[1];
@@ -280,7 +279,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                     gid: _thisGroupId)
                     .endGroup(); //그룹 삭제
               }
-              StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
             },
             icon: const Icon(Icons.exit_to_app),
           ),
@@ -305,10 +303,16 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _modeName = "basic";
-                      });
+                    onTap: () async{
+                      if(_isAdmin){
+                        setState(() {
+                          _thisGroup.setGroupMode("basic");
+                        });
+                        await FirebaseService(
+                          gid: _thisGroupId,
+                        ).setBasicMode(_thisGroup.getBasicSetting(), _thisGroup.getBasicGoal());
+                      }
+
                     },
                     child: Container(
                       color: Colors.transparent,
@@ -316,7 +320,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       height: 40,
                       child: Center(
                         child: Text("기본모드",
-                            style: (_modeName != "basic")
+                            style: (_thisGroup.getGroupMode() != "basic")
                                 ? const TextStyle(
                               fontFamily: "SCDream",
                               fontSize: 14,
@@ -332,10 +336,15 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _modeName = "coop";
-                      });
+                    onTap: () async{
+                      if(_isAdmin){
+                        setState(() {
+                          _thisGroup.setGroupMode("coop");
+                        });
+                        await FirebaseService(
+                          gid: _thisGroupId,
+                        ).setCoopMode();
+                      }
                     },
                     child: Container(
                       color: Colors.transparent,
@@ -343,7 +352,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       height: 40,
                       child: Center(
                         child: Text("협동모드",
-                            style: (_modeName != "coop")
+                            style: (_thisGroup.getGroupMode() != "coop")
                                 ? const TextStyle(
                               fontFamily: "SCDream",
                               fontSize: 14,
@@ -359,10 +368,15 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _modeName = "comp";
-                      });
+                    onTap: () async{
+                      if(_isAdmin){
+                        setState(() {
+                          _thisGroup.setGroupMode("comp");
+                        });
+                        await FirebaseService(
+                          gid: _thisGroupId,
+                        ).setCompMode();
+                      }
                     },
                     child: Container(
                       color: Colors.transparent,
@@ -371,7 +385,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                       child: Center(
                         child: Text(
                           "경쟁모드",
-                          style: (_modeName != "comp")
+                          style: (_thisGroup.getGroupMode() != "comp")
                               ? const TextStyle(
                             fontFamily: "SCDream",
                             fontSize: 14,
@@ -400,30 +414,51 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                        backgroundColor: (_isAdmin)
+                          ?const Color.fromARGB(255, 0, 173, 181) //teal
+                          :(_thisGroup.getReady(_uid))
+                          ?Colors.lightBlueAccent
+                          :const Color.fromARGB(255, 0, 173, 181), //teal
                         elevation: 0,
                       ),
                       onPressed: () async {
-                        WidgetsFlutterBinding.ensureInitialized();
-                        await location.getLocation().then((res) {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context)=>
-                                  RunningPage(
-                                    initialLocation : res,
-                                    thisGroup : _thisGroup,
-                                    userName: _uname,
-                                  )));
-                        });
+                        int readyCount = _thisGroup.getMembersReady().values.where((value) => value == true).length;
+                        if(_isAdmin){
+                          if(readyCount==_thisGroup.getMembersNum()){
+                            WidgetsFlutterBinding.ensureInitialized();
+                            await location.getLocation().then((res) {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context)=>
+                                      RunningPage(
+                                        initialLocation : res,
+                                        thisGroup : _thisGroup,
+                                        userName: _uname,
+                                      )));
+                            });
+                          }else{
+                            _showReadyAlert();
+                          }
+                        }else{
+                          setState(() {
+                            _thisGroup.setReady(_uid,!_thisGroup.getReady(_uid));
+                          });
+                          await FirebaseService(
+                              uid: _uid,
+                              gid: _thisGroupId)
+                              .setReady(_thisGroup.getReady(_uid));
+                        }
                       },
                       child: Container(
                         width: 120,
                         height: 50,
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            "달리기 시작",
-                            style: TextStyle(
+                            (_isAdmin)
+                                ?"달리기 시작"
+                                :(_thisGroup.getReady(_uid))?"준비 완료":"준비 하기",
+                            style: const TextStyle(
                                 fontFamily: "SCDream",
-                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                color: const Color.fromARGB(255, 238, 238, 238), //white
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18),
                           ),
@@ -441,22 +476,22 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   //접속 여부 전체 창
   Widget _playerStatusField() {
     //접속 수만큼 플레이어 창으로, 나마지는 빈 창으로 설정
-    return (_membersNum>0)?Column( //1명 이상
+    return (_thisGroup.getMembersNum()>0)?Column( //1명 이상
       children: [
         Row(
           children: [
             _playerStatusContainer(1, _thisGroup.getMembersName()[0], _thisGroup.getMembersId()[0], _myIdxList[0]),
-            (_membersNum > 1) //2명 이상
+            (_thisGroup.getMembersNum() > 1) //2명 이상
                 ? _playerStatusContainer(2, _thisGroup.getMembersName()[1], _thisGroup.getMembersId()[1], _myIdxList[1])
                 : _validStatusContainer(),
           ],
         ),
         Row(
           children: [
-            (_membersNum > 2) //3명 이상
+            (_thisGroup.getMembersNum() > 2) //3명 이상
                 ? _playerStatusContainer(3, _thisGroup.getMembersName()[2], _thisGroup.getMembersId()[2], _myIdxList[2])
                 : _validStatusContainer(),
-            (_membersNum > 3) //4명 이상
+            (_thisGroup.getMembersNum() > 3) //4명 이상
                 ? _playerStatusContainer(4, _thisGroup.getMembersName()[3], _thisGroup.getMembersId()[3], _myIdxList[3])
                 : _validStatusContainer(),
           ],
@@ -474,7 +509,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     return (_isAdmin)? //내가 admin이면,
     Container(
       padding: const EdgeInsets.all(5),
-      color: (isMe)?Colors.grey:Colors.grey, //나면 파랑, 아니면 초록
+      color: (isMe)?Colors.lightBlueAccent:Colors.grey, //나면 파랑, 아니면 초록
       width: MediaQuery.of(context).size.width / 2,
       height: 50,
       child: Row(
@@ -496,7 +531,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ),
           Container(
               width: MediaQuery.of(context).size.width / 2 - 80,
-              color: const Color.fromARGB(255, 238, 238, 238), //white
+              color: (_thisGroup.getReady(playerId))
+                  ?const Color.fromARGB(255, 0, 173, 181)//teal
+                  :const Color.fromARGB(255, 238, 238, 238),//white
               child: Center(
                   child: Text(playerName,
                     style: const TextStyle(
@@ -510,21 +547,27 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           Container(
             height: 50,
             width: 40,
-            color: const Color.fromARGB(255, 238, 238, 238), //white
+            color: (_thisGroup.getReady(playerId))
+                ?const Color.fromARGB(255, 0, 173, 181)//teal
+                :const Color.fromARGB(255, 238, 238, 238),//white
             child: (!isMe)? //내가 아니면,
             IconButton(
                 icon: const Icon(Icons.close_sharp),
                 onPressed: () async{ //추방 버튼
                   _showKickDialog(playerId, playerName);
                 }):
-            const Icon(Icons.star_sharp, color: Color.fromARGB(255, 0, 173, 181),), //teal
+            Icon(Icons.star_sharp,
+              color: (_thisGroup.getReady(playerId)
+                  ?const Color.fromARGB(255, 238, 238, 238) //white
+                  :const Color.fromARGB(255, 0, 173, 181) //teal
+              ))
           ) //내가 맞으면, 호스트
         ],
       ),
     ): //내가 admin이 아니면,
     Container(
       padding: const EdgeInsets.all(5),
-      color: (isMe)?Colors.grey:Colors.grey, //나면 파랑, 아니면 초록
+      color: (isMe)?Colors.lightBlueAccent:Colors.grey, //나면 파랑, 아니면 초록
       width: MediaQuery.of(context).size.width / 2,
       height: 50,
       child: Row(
@@ -546,7 +589,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ),
           Container(
               width: MediaQuery.of(context).size.width / 2 - 80,
-              color: const Color.fromARGB(255, 238, 238, 238), //white
+              color: (_thisGroup.getReady(playerId))
+                  ?const Color.fromARGB(255, 0, 173, 181)//teal
+                  :const Color.fromARGB(255, 238, 238, 238),//white
               child: Center(
                   child: Text(playerName,
                     style: const TextStyle(
@@ -557,15 +602,21 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   )
               )
           ),
-          //플레이어가 admin이면 host 아니면 비어두기
+          //플레이어가 ready이면
           Container(
               height: 50,
               width: 40,
-              color: const Color.fromARGB(255, 238, 238, 238), //white
+              color: (_thisGroup.getReady(playerId))
+                  ?const Color.fromARGB(255, 0, 173, 181)//teal
+                  :const Color.fromARGB(255, 238, 238, 238),//white
               child: Center(
-                  child: (playerName==_thisGroup.getAdminName())?
-                  const Icon(Icons.star_sharp, color: Color.fromARGB(255, 0, 173, 181),): //teal
-                  const Text(""))),
+                  child: (playerName==_thisGroup.getAdminName())
+                      ? Icon(Icons.star_sharp,
+                      color: (_thisGroup.getReady(playerId)
+                          ?const Color.fromARGB(255, 238, 238, 238) //white
+                          :const Color.fromARGB(255, 0, 173, 181)) //teal
+                  ) : const Text(""),
+              )),
         ],
       ),
     );
@@ -723,8 +774,8 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height-531, //351+56+24=431
-        child: (_modeName == "basic")?
-        _basicModeWidget():(_modeName == "coop")?
+        child: (_thisGroup.getGroupMode() == "basic")?
+        _basicModeWidget():(_thisGroup.getGroupMode() == "coop")?
         Column(
           children: const [
             Padding(
@@ -739,7 +790,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             ),
 
           ],
-        ):(_modeName == "comp")?
+        ):(_thisGroup.getGroupMode() == "comp")?
         Column(
           children: const [
             Padding(
@@ -754,7 +805,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             ),
 
           ],
-        ):Center(child: const CircularProgressIndicator())
+        ):const Center(child: const CircularProgressIndicator())
     );
   }
 
@@ -772,38 +823,49 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             ),
           ),
         ),
-        SizedBox(height: 10,),
+        const SizedBox(height: 10,),
         TextButton(
             onPressed: (){
-              showCupertinoModalPopup(context: context,
-                builder: (BuildContext context) => CupertinoActionSheet(
-                  //title: const Text(""),
-                  actions: [
-                    CupertinoActionSheetAction(
-                      child: const Text("목표 거리"),
-                      onPressed: () {
-                        _basicSetting = "목표 거리";
-                        Navigator.pop(context);
-                      },
-                    ),
-                    CupertinoActionSheetAction(
-                      child: const Text("목표 시간"),
-                      onPressed: () {
-                        _basicSetting = "목표 시간";
-                        Navigator.pop(context);
-                      },
-                    ),
-                    CupertinoActionSheetAction(
-                      child: const Text("스피드 측정"),
-                      onPressed: () {
-                        _basicSetting = "스피드 측정";
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ));
+              if (_isAdmin) {
+                showCupertinoModalPopup(context: context,
+                    builder: (BuildContext context) => CupertinoActionSheet(
+                      //title: const Text(""),
+                      actions: [
+                        CupertinoActionSheetAction(
+                          child: const Text("목표 거리"),
+                          onPressed: () async{
+                            _thisGroup.setBasicSetting("목표 거리");
+                            Navigator.pop(context);
+                            await FirebaseService(
+                              gid: _thisGroupId,
+                            ).setBasicMode(_thisGroup.getBasicSetting(),_thisGroup.getBasicGoal());
+                          },
+                        ),
+                        CupertinoActionSheetAction(
+                          child: const Text("목표 시간"),
+                          onPressed: () async{
+                            _thisGroup.setBasicSetting("목표 시간");
+                            Navigator.pop(context);
+                            await FirebaseService(
+                              gid: _thisGroupId,
+                            ).setBasicMode(_thisGroup.getBasicSetting(),_thisGroup.getBasicGoal());
+                          },
+                        ),
+                        CupertinoActionSheetAction(
+                          child: const Text("스피드 측정"),
+                          onPressed: () async{
+                            _thisGroup.setBasicSetting("스피드 측정");
+                            Navigator.pop(context);
+                            await FirebaseService(
+                              gid: _thisGroupId,
+                            ).setBasicMode(_thisGroup.getBasicSetting(),_thisGroup.getBasicGoal());
+                          },
+                        ),
+                      ],
+                    ));
+              }
               },
-            child: Text(_basicSetting,
+            child: Text(_thisGroup.getBasicSetting(),
               style: const TextStyle(
                 fontFamily: "SCDream",
                 color: Color.fromARGB(255, 57, 62, 70), //grey
@@ -813,15 +875,15 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             ),
         ),
         Padding(
-          padding: EdgeInsets.only(bottom:20),
+          padding: const EdgeInsets.only(bottom:20),
           child: TextButton(
             onPressed: (){
-              if(_basicSetting!="스피드 측정"){
+              if(_thisGroup.getBasicSetting()!="스피드 측정" && _isAdmin){
                 showDialog(
                   // 메시지 창 뛰움
                     context: context,
                     builder: (context) {
-                      double tempNum = 0;
+                      double tempVal = 0;
                       return AlertDialog(
                         //메시지 창
                           contentPadding: const EdgeInsets.all(10),
@@ -834,7 +896,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                 Container(
-                                  child: Text(_basicSetting,
+                                  child: Text(_thisGroup.getBasicSetting(),
                                     style: const TextStyle(
                                         fontFamily: "SCDream",
                                         color: Color.fromARGB(255, 34, 40, 49), //black
@@ -867,25 +929,25 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                             //텍스트 필드 값 바뀔 시
                                             setState(() {
                                               if(value==null){
-                                                tempNum = 0;
+                                                tempVal = 0;
                                               }else{
-                                                tempNum = double.parse(value);
+                                                tempVal = double.parse(value);
                                               }
                                             });
                                           },
                                           onSaved: (value) async {
                                             setState(() {
                                               if(value==null){
-                                                tempNum = 0;
+                                                tempVal = 0;
                                               }else{
-                                                tempNum = double.parse(value);
+                                                tempVal = double.parse(value);
                                               }
                                             });
                                           },
                                         ),
                                       ),
                                     ),
-                                    Text((_basicSetting=="목표 거리")?"KM":"분",
+                                    Text((_thisGroup.getBasicSetting()=="목표 거리")?"KM":"분",
                                       style: const TextStyle(
                                           fontFamily: "SCDream",
                                           color: Color.fromARGB(255, 34, 40, 49), //black
@@ -906,7 +968,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                           backgroundColor: Colors.grey,
                                           elevation: 0,
                                         ),
-                                        child: Text("취소",
+                                        child: const Text("취소",
                                           style: TextStyle(
                                             fontFamily: "SCDream",
                                             color: Color.fromARGB(255, 238, 238, 238), //white
@@ -917,7 +979,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                           Navigator.of(context).pop();
                                         }
                                     ),
-                                    SizedBox(width: 5,),
+                                    const SizedBox(width: 5,),
                                     ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           shape: RoundedRectangleBorder(
@@ -928,7 +990,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                               255, 0, 173, 181), //teal
                                           elevation: 0,
                                         ),
-                                        child: Text("설정",
+                                        child: const Text("설정",
                                           style: TextStyle(
                                             fontFamily: "SCDream",
                                             color: Color.fromARGB(255, 238, 238, 238), //white
@@ -936,10 +998,15 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                           ),
                                         ),
                                         onPressed: () async {
-                                          if(tempNum!=0){
-                                            _basicGoal[_basicSetting] = tempNum;
-                                          }
                                           Navigator.of(context).pop();
+                                          if(tempVal!=0){
+                                            _thisGroup.getBasicGoal()[_thisGroup.getBasicSetting()] = tempVal;
+                                            await FirebaseService(
+                                              gid: _thisGroupId,
+                                            ).setBasicMode(_thisGroup.getBasicSetting(),_thisGroup.getBasicGoal());
+                                          }
+
+
                                         }
                                     )
 
@@ -952,12 +1019,12 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
               }
 
             },
-            child: Text((_basicSetting=="목표 거리")
-                ?_basicGoal[_basicSetting]!.toStringAsFixed(2)+" KM"
-                :(_basicSetting=="목표 시간")
-                ?_basicGoal[_basicSetting]!.toStringAsFixed(0)+" 분"
+            child: Text((_thisGroup.getBasicSetting()=="목표 거리")
+                ?_thisGroup.getBasicGoal()[_thisGroup.getBasicSetting()]!.toStringAsFixed(2)+" KM"
+                :(_thisGroup.getBasicSetting()=="목표 시간")
+                ?_thisGroup.getBasicGoal()[_thisGroup.getBasicSetting()]!.toStringAsFixed(0)+" 분"
                 :"랩타임",
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: "SCDream",
                 color: Color.fromARGB(255, 57, 62, 70), //grey
                 fontWeight: FontWeight.w900,
@@ -967,6 +1034,24 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ),
         ),
       ],
+    );
+  }
+  void _showReadyAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          content: Text("아직 준비를 안한 인원이 있습니다!"),
+          actions: [
+            CupertinoDialogAction(
+                isDefaultAction: true,
+                child: const Text("확인"),
+                onPressed: () {
+                  Navigator.pop(context);
+                })
+          ],
+        );
+      },
     );
   }
 

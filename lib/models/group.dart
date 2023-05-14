@@ -9,9 +9,11 @@ class Group{
   String _adminName = "";
   List<String> _membersId = [];
   List<String> _membersName = [];
+
   String _groupMode = "";
   String _basicSetting = "";
   Map<String, double> _basicGoal = {"거리":5.0, "시간":30};
+  Map<String, bool> _membersReady = {};
 
 
   //그룹 GetSet
@@ -38,6 +40,30 @@ class Group{
       _membersName.add(element.toString());
     });
   }
+  setMembersReady(Map<String, dynamic> memReady){
+    _membersReady.clear();
+    memReady.forEach((key, value) {
+      if(value.toString()=="true")
+        _membersReady[key] = true;
+      else
+        _membersReady[key] = false;
+    });
+  }
+  setReady(String uid, bool isready){
+    _membersReady[uid] = isready;
+  }
+  setGroupMode(String gmode){
+    _groupMode=gmode;
+  }
+  setBasicSetting(String bsetting){
+    _basicSetting=bsetting;
+  }
+  setBasicGoal(Map<String, dynamic> bgoal){
+    _basicGoal.clear();
+    bgoal.forEach((key, value) {
+      _basicGoal[key] = double.parse(value.toString());
+    });
+  }
 
   int getMembersNum(){
     return _membersId.length;
@@ -58,4 +84,24 @@ class Group{
   List<String> getMembersName(){
     return _membersName;
   }
+  Map<String, bool> getMembersReady(){
+    return _membersReady;
+  }
+  bool getReady(String uid){
+    if(_membersReady[uid]!=null){
+      return _membersReady[uid]!;
+    }else{
+      return false;
+    }
+  }
+  String getGroupMode(){
+    return _groupMode;
+  }
+  String getBasicSetting(){
+    return _basicSetting;
+  }
+  Map<String, double> getBasicGoal(){
+    return _basicGoal;
+  }
+
 }

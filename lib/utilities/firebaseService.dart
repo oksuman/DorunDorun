@@ -136,8 +136,12 @@ class FirebaseService{
       "adminName": adminName,
       "membersId": [],
       "membersName": [],
+      "membersReady": {uid:true},
       "groupId": "",
-      "membersNum" : 1
+      "membersNum" : 1,
+      "groupMode": "basic",
+      "basicSetting": "목표 거리",
+      "basicGoal": {"목표 거리":5, "목표 시간":30,},
     });
     //멤버에 자신 추가
     await groupDocument.update({
@@ -188,11 +192,21 @@ class FirebaseService{
   //초대 수락
   Future joinInvite(String uname, String inviteId) async {
     final DocumentReference groupDocument = _groupCollection.doc(gid);
+    final DocumentSnapshot groupSnapshot = await groupDocument.get();
     //그룹 다큐멘트 업데이트
+    Map<String, bool> tempReady = {};
+    groupSnapshot.get("membersReady").forEach((key, value) {
+      if(value.toString()=="true")
+        tempReady[key] = true;
+      else
+        tempReady[key] = false;
+    });
+    tempReady[uid!] = false;
     await groupDocument.update({
       "membersId": FieldValue.arrayUnion([uid]),
       "membersName": FieldValue.arrayUnion([uname]),
-      "membersNum" : FieldValue.increment(1)
+      "membersNum" : FieldValue.increment(1),
+      "membersReady": tempReady,
     });
     //내가 속한 그룹 업데이트
     final DocumentReference userDocument = _userCollection.doc(uid);
@@ -220,10 +234,21 @@ class FirebaseService{
   Future exitGroup(String uname) async {
     //그룹 업데이트
     final DocumentReference groupDocument = _groupCollection.doc(gid);
+    final DocumentSnapshot groupSnapshot = await groupDocument.get();
+    Map<String, bool> tempReady = {};
+    groupSnapshot.get("membersReady").forEach((key, value) {
+      if(value.toString()=="true")
+        tempReady[key] = true;
+      else
+        tempReady[key] = false;
+    });
+    tempReady.remove(uid);
     await groupDocument.update({
       "membersId": FieldValue.arrayRemove([uid]),
       "membersName": FieldValue.arrayRemove([uname]),
-      "membersNum" : FieldValue.increment(-1)
+      "membersReady": tempReady,
+      "membersNum" : FieldValue.increment(-1),
+
     });
     //유저 상태 초기화
     final DocumentReference userDocument = _userCollection.doc(uid);
@@ -236,13 +261,24 @@ class FirebaseService{
   //호스트 나가기
   Future adminExitGroup(String uname, String nextName, String nextId) async {
     final DocumentReference groupDocument = _groupCollection.doc(gid);
+    final DocumentSnapshot groupSnapshot = await groupDocument.get();
     //그룹 업데이트 + 호스트 넘겨주기
+    Map<String, bool> tempReady = {};
+    groupSnapshot.get("membersReady").forEach((key, value) {
+      if(value.toString()=="true")
+        tempReady[key] = true;
+      else
+        tempReady[key] = false;
+    });
+    tempReady.remove(uid);
     await groupDocument.update({
       "adminId" : nextId,
       "adminName" : nextName,
       "membersId": FieldValue.arrayRemove([uid]),
       "membersName": FieldValue.arrayRemove([uname]),
-      "membersNum" : FieldValue.increment(-1)
+      "membersReady": tempReady,
+      "membersNum" : FieldValue.increment(-1),
+
     });
     //유저 상태 초기화
     final DocumentReference userDocument = _userCollection.doc(uid);
@@ -268,10 +304,21 @@ class FirebaseService{
   Future kickPlayer(String fname) async {
     //그룹 업데이트
     final DocumentReference groupDocument = _groupCollection.doc(gid);
+    final DocumentSnapshot groupSnapshot = await groupDocument.get();
+    Map<String, bool> tempReady = {};
+    groupSnapshot.get("membersReady").forEach((key, value) {
+      if(value.toString()=="true")
+        tempReady[key] = true;
+      else
+        tempReady[key] = false;
+    });
+    tempReady.remove(fid);
     await groupDocument.update({
       "membersId": FieldValue.arrayRemove([fid]),
       "membersName": FieldValue.arrayRemove([fname]),
-      "membersNum" : FieldValue.increment(-1)
+      "membersReady": tempReady,
+      "membersNum" : FieldValue.increment(-1),
+
     });
     //유저 상태 -> 추방
     final DocumentReference userDocument = _userCollection.doc(fid);
@@ -283,8 +330,8 @@ class FirebaseService{
   //아바타 ID get
   Future<int> getAvatarId() async {
     final DocumentReference userDocument = _userCollection.doc(uid);
-    final DocumentSnapshot groupSnapshot = await userDocument.get();
-    return groupSnapshot.get("avatarId");
+    final DocumentSnapshot userSnapshot = await userDocument.get();
+    return userSnapshot.get("avatarId");
   }
   //아바타 ID set
   Future setAvatarId(int avatarId) async {
@@ -294,5 +341,39 @@ class FirebaseService{
     });
   }
 
-
+  Future setBasicMode(String bSetting, Map<String,dynamic> bGoal,) async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    await groupDocument.update({
+      "groupMode": "basic",
+      "basicSetting": bSetting,
+      "basicGoal": bGoal,
+    });
+  }
+  Future setCoopMode() async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    await groupDocument.update({
+      "groupMode": "coop",
+    });
+  }
+  Future setCompMode() async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    await groupDocument.update({
+      "groupMode": "comp",
+    });
+  }
+  Future setReady(bool isready) async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    final DocumentSnapshot groupSnapshot = await groupDocument.get();
+    Map<String, bool> tempReady = {};
+    groupSnapshot.get("membersReady").forEach((key, value) {
+      if(value.toString()=="true")
+        tempReady[key] = true;
+      else
+        tempReady[key] = false;
+    });
+    tempReady[uid!] = isready;
+    await groupDocument.update({
+      "membersReady": tempReady,
+    });
+  }
 }
