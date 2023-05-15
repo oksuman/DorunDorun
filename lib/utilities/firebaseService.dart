@@ -1,9 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /*******************************
 * 파이어베이스 관련 클래스입니다.      *
 *******************************/
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class FirebaseService{
   final String? uid; //자신의 id (user id)
   final String? fid; //상대방의 id (friend id)

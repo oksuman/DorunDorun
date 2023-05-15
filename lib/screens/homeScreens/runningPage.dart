@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:latlong2/latlong.dart';
+import '../../utilities/firebaseService.dart';
+import '../../utilities/storageService.dart';
 import 'runResultPage.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,12 +22,14 @@ class RunningPage extends StatefulWidget {
   final LocationData initialLocation; // 첫 위치 초기화용 LocationData
   final Group thisGroup; // 현재 사용자가 속해있는 그룹 정보
   final String userName; // 사용자 이름으로 기록을 업로드할 때 기록의 주인을 식별하기 위해 사용. 꼭 이름일 필요는 없음.
+  final String userId;
 
   const RunningPage({
     super.key,
     required this.initialLocation,
     required this.thisGroup,
     required this.userName,
+    required this.userId,
   });
 
   @override
@@ -359,9 +363,29 @@ class _RunningPageState extends State<RunningPage> {
                     child: Icon(_runningControlBtn),
                   ),
                   FloatingActionButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).push(MaterialPageRoute(
+                    onPressed: () async{
+                      StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
+                      if(widget.thisGroup.getMembersNum()>1){ //멤버가 2명 이상일 때,
+                        if(widget.thisGroup.getAdminId()==widget.userId){ //내가 admin 이면,
+                          final nAdminId = widget.thisGroup.getMembersId()[1];
+                          final nAdminName = widget.thisGroup.getMembersName()[1];
+                          await FirebaseService(
+                              uid: widget.userId,
+                              gid: widget.thisGroup.getGroupId())
+                              .adminExitGroup(widget.userName, nAdminName, nAdminId); //다음(1번) 멤버에게 권한 전달하고 나가기
+                        }else{ // 내가 admin 아니면,
+                          await FirebaseService(
+                              uid: widget.userId,
+                              gid: widget.thisGroup.getGroupId())
+                              .exitGroup(widget.userName); //그룹 나가기
+                        }
+                      }else{ //멤버 수가 1명
+                        await FirebaseService(
+                            uid: widget.userId,
+                            gid: widget.thisGroup.getGroupId())
+                            .endGroup(); //그룹 삭제
+                      }
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
                           builder: (context) => RunResultPage(
                               pathMoved: pathMoved,
                               snapshots: snapshots,

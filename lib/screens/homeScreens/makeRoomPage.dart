@@ -10,6 +10,7 @@
  ******************************************/
 
 import 'dart:async';
+import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -45,13 +46,13 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   //스트림 종료 위해(최적화)
   StreamSubscription? _groupDocListen = null; //그룹 다큐멘트 스트림 구독
   StreamSubscription? _userDocListen = null; //유저 다큐멘트 스트림 구독
+  AsyncMemoizer _memoizer = AsyncMemoizer();
 
   Map<String,dynamic> _groupData = {}; //스트림으로 받은 그룹 다큐멘트 데이터
 
   final currentUser = FirebaseAuth.instance;
   final CollectionReference _userCollection =
   FirebaseFirestore.instance.collection("users"); //파이베이스 유저 컬렉션 가져오기
-
 
   Location location = Location();
 
@@ -150,8 +151,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         }
       }
     });
-
-
   }
   //추방 여부 확인
   _getIsKicked(){
@@ -180,7 +179,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }
     });
   }
-  _pushIfStart() async{
+  Future _pushIfStart() async{
     if(_thisGroup.getGroupState()=="running"){
       WidgetsFlutterBinding.ensureInitialized();
       await location.getLocation().then((res) {
@@ -190,6 +189,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   initialLocation : res,
                   thisGroup : _thisGroup,
                   userName: _uname,
+                  userId: _uid,
                 )));
       });
     }
@@ -270,12 +270,13 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   @override
   Widget build(BuildContext context) {
     _gid = ModalRoute.of(context)!.settings.arguments as String; //인자 전 페이지에서 받아오기
+
     if(_thisGroupId!=""){ //그룹 아이디 받아오면
-      _updateGroup(); //빌드마다 그룹 상태 업데이트(누가 들어오거나, 추방됐는지 확인)
+      _updateGroup();
       _pushIfStart();
     }
     if(_uid!=""){ //유저 아이디 받아오면
-      _getIsKicked(); //추방여부 계속 확인
+      _getIsKicked();
     }
     return Scaffold(
       appBar: AppBar(
