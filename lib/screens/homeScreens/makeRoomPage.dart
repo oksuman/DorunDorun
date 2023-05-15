@@ -179,18 +179,20 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }
     });
   }
-  Future _pushIfStart() async{
+  _pushIfStart() async{
     if(_thisGroup.getGroupState()=="running"){
       WidgetsFlutterBinding.ensureInitialized();
       await location.getLocation().then((res) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context)=>
-                RunningPage(
-                  initialLocation : res,
-                  thisGroup : _thisGroup,
-                  userName: _uname,
-                  userId: _uid,
-                )));
+        _memoizer.runOnce((){ //한번만 실행되게
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context)=>
+                  RunningPage(
+                    initialLocation : res,
+                    thisGroup : _thisGroup,
+                    userName: _uname,
+                    userId: _uid,
+                  )));
+        });
       });
     }
   }
