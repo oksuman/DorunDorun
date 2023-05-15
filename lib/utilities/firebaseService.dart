@@ -132,6 +132,7 @@ class FirebaseService{
   //그룹 생성
   Future<String?> createGroup(String adminName) async {
     DocumentReference groupDocument = await _groupCollection.add({
+      "groupState": "idle",
       "adminId": uid,
       "adminName": adminName,
       "membersId": [],
@@ -374,6 +375,13 @@ class FirebaseService{
     tempReady[uid!] = isready;
     await groupDocument.update({
       "membersReady": tempReady,
+    });
+  }
+  Future setGroupState(bool isRunning) async {
+    final DocumentReference groupDocument = _groupCollection.doc(gid);
+    String gstate = (isRunning)?"running":"idle";
+    await groupDocument.update({
+      "groupState": gstate,
     });
   }
 }

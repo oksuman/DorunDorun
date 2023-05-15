@@ -30,6 +30,9 @@ class MakeRoomPage extends StatefulWidget {
 }
 
 class _MakeRoomPageState extends State<MakeRoomPage> {
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                        Fields                                                 //
+///////////////////////////////////////////////////////////////////////////////////////////////////
   bool _isAdmin = false; //admin 여부
   List<bool> _myIdxList = List.filled(4, false); //멤버 리스트 중 내 인덱스 위치(0~3)
   String _uid = ""; //내 아이디
@@ -55,7 +58,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   // gps 사용 권한
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                        Functions                                              //
+///////////////////////////////////////////////////////////////////////////////////////////////////
   // gps 사용 권한 받기
   _giveAuthority() async {
     _serviceEnabled = await location.serviceEnabled();
@@ -73,7 +78,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }
     }
   }
-
   //스토리지에서 내 데이터 받아오기
   _getMyData() async {
     await StorageService().getUserID().then((value) {
@@ -92,7 +96,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       });
     });
   }
-
   //그룹 초기 설정
   _setGroup() async {
     await _getMyData(); //내 데이터 받아오기
@@ -121,6 +124,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           _groupData = documentSnapshot.data()! as Map<String,dynamic>; //다큐멘트 데이터
         // 그룹 객체 업데이트
         _thisGroup.setGroupId(_groupData["groupId"]);
+        _thisGroup.setGroupState(_groupData["groupState"]);
         _thisGroup.setAdminId(_groupData["adminId"]);
         _thisGroup.setAdminName(_groupData["adminName"]);
         _thisGroup.setMembersId(_groupData["membersId"]);
@@ -149,7 +153,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
 
 
   }
-
   //추방 여부 확인
   _getIsKicked(){
     final DocumentReference userDocument = _userCollection.doc(_uid); //유저 다큐멘트
@@ -177,7 +180,23 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       }
     });
   }
-
+  _pushIfStart() async{
+    if(_thisGroup.getGroupState()=="running"){
+      WidgetsFlutterBinding.ensureInitialized();
+      await location.getLocation().then((res) {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context)=>
+                RunningPage(
+                  initialLocation : res,
+                  thisGroup : _thisGroup,
+                  userName: _uname,
+                )));
+      });
+    }
+  }
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                        Message                                                //
+///////////////////////////////////////////////////////////////////////////////////////////////////
   _showKickDialog(String fid, String pname) {
     showDialog(
       context: context,
@@ -208,7 +227,25 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       },
     );
   }
-
+  void _showReadyAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          content: Text("아직 준비를 안한 인원이 있습니다!"),
+          actions: [
+            CupertinoDialogAction(
+                isDefaultAction: true,
+                child: const Text("확인"),
+                onPressed: () {
+                  Navigator.pop(context);
+                })
+          ],
+        );
+      },
+    );
+  }
+///////////////////////////////////////////////////////////////////////////////////////////////////
   //위젯 시작 시
   @override
   void initState() {
@@ -216,7 +253,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     _giveAuthority();
     _setGroup(); //그룹 초기 설정
   }
-
   //위젯 종료 시
   @override
   void dispose() {
@@ -228,12 +264,15 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       print("스트림이 닫히지 않았습니다."); //혹시나 해서
     }
   }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                        SCAFFOLD                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
   @override
   Widget build(BuildContext context) {
     _gid = ModalRoute.of(context)!.settings.arguments as String; //인자 전 페이지에서 받아오기
     if(_thisGroupId!=""){ //그룹 아이디 받아오면
       _updateGroup(); //빌드마다 그룹 상태 업데이트(누가 들어오거나, 추방됐는지 확인)
+      _pushIfStart();
     }
     if(_uid!=""){ //유저 아이디 받아오면
       _getIsKicked(); //추방여부 계속 확인
@@ -425,16 +464,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                         int readyCount = _thisGroup.getMembersReady().values.where((value) => value == true).length;
                         if(_isAdmin){
                           if(readyCount==_thisGroup.getMembersNum()){
-                            WidgetsFlutterBinding.ensureInitialized();
-                            await location.getLocation().then((res) {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context)=>
-                                      RunningPage(
-                                        initialLocation : res,
-                                        thisGroup : _thisGroup,
-                                        userName: _uname,
-                                      )));
-                            });
+                            await FirebaseService(
+                                gid: _thisGroupId)
+                                .setGroupState(true);
                           }else{
                             _showReadyAlert();
                           }
@@ -472,7 +504,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       ),
     );
   }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                        WIDGETS                                                //
+///////////////////////////////////////////////////////////////////////////////////////////////////
   //접속 여부 전체 창
   Widget _playerStatusField() {
     //접속 수만큼 플레이어 창으로, 나마지는 빈 창으로 설정
@@ -503,7 +537,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         height: 100,
         child: const Center(child: CircularProgressIndicator(),)); //멤버 수가 0명이면(파이어스토어에서 아직 못받아오면) 모래시계
   }
-
   //플레이어 창(번호, 이름, 아이디, 나인지)
   Widget _playerStatusContainer(int index, String playerName, String playerId, bool isMe) {
     return (_isAdmin)? //내가 admin이면,
@@ -621,7 +654,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       ),
     );
   }
-
   //접속 안했을 때 창
   Widget _validStatusContainer() {
     return Container(
@@ -768,7 +800,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       ),
     );
   }
-
   //모드 설정 창
   Widget _modeOptionWidget() {
     return SizedBox(
@@ -808,7 +839,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         ):const Center(child: const CircularProgressIndicator())
     );
   }
-
   Widget _basicModeWidget(){
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -1005,8 +1035,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                                               gid: _thisGroupId,
                                             ).setBasicMode(_thisGroup.getBasicSetting(),_thisGroup.getBasicGoal());
                                           }
-
-
                                         }
                                     )
 
@@ -1036,23 +1064,4 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       ],
     );
   }
-  void _showReadyAlert() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          content: Text("아직 준비를 안한 인원이 있습니다!"),
-          actions: [
-            CupertinoDialogAction(
-                isDefaultAction: true,
-                child: const Text("확인"),
-                onPressed: () {
-                  Navigator.pop(context);
-                })
-          ],
-        );
-      },
-    );
-  }
-
 }

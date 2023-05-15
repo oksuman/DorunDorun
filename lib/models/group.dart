@@ -4,6 +4,7 @@
 
 class Group{
   //그룹 필드
+  String _groupState = "";
   String _groupId = "";
   String _adminId = "";
   String _adminName = "";
@@ -20,7 +21,9 @@ class Group{
   setGroupId(String gid){
     _groupId = gid;
   }
-
+  setGroupState(String gstate){
+    _groupState = gstate;
+  }
   setAdminId(String aid){
     _adminId = aid;
   }
@@ -69,6 +72,9 @@ class Group{
     return _membersId.length;
   }
 
+  String getGroupState(){
+    return _groupState;
+  }
   String getGroupId(){
     return _groupId;
   }
