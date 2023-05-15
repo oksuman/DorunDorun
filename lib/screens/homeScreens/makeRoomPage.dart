@@ -184,7 +184,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     if(_thisGroup.getGroupState()=="running"){
       WidgetsFlutterBinding.ensureInitialized();
       await location.getLocation().then((res) {
-        Navigator.of(context).push(MaterialPageRoute(
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
             builder: (context)=>
                 RunningPage(
                   initialLocation : res,
