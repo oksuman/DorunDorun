@@ -46,6 +46,8 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   //스트림 종료 위해(최적화)
   StreamSubscription? _groupDocListen = null; //그룹 다큐멘트 스트림 구독
   StreamSubscription? _userDocListen = null; //유저 다큐멘트 스트림 구독
+
+  //지속적으로 호출되는 함수 메모리 개선위한 캐시
   AsyncMemoizer _memPush = AsyncMemoizer();
   AsyncMemoizer _memKick = AsyncMemoizer();
   AsyncMemoizer _memGroup = AsyncMemoizer();
@@ -277,7 +279,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
 
     if(_thisGroupId!=""){ //그룹 아이디 받아오면
       _memGroup.runOnce(()=> _updateGroup());
-      _memPush.runOnce(()=> _pushIfStart());
+      _pushIfStart();
     }
     if(_uid!=""){ //유저 아이디 받아오면
       _memKick.runOnce(()=> _getIsKicked());
