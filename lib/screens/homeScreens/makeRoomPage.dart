@@ -46,7 +46,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   //스트림 종료 위해(최적화)
   StreamSubscription? _groupDocListen = null; //그룹 다큐멘트 스트림 구독
   StreamSubscription? _userDocListen = null; //유저 다큐멘트 스트림 구독
-  AsyncMemoizer _memoizer = AsyncMemoizer();
+  AsyncMemoizer _memPush = AsyncMemoizer();
+  AsyncMemoizer _memKick = AsyncMemoizer();
+  AsyncMemoizer _memGroup = AsyncMemoizer();
 
   Map<String,dynamic> _groupData = {}; //스트림으로 받은 그룹 다큐멘트 데이터
 
@@ -183,7 +185,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     if(_thisGroup.getGroupState()=="running"){
       WidgetsFlutterBinding.ensureInitialized();
       await location.getLocation().then((res) {
-        _memoizer.runOnce((){ //한번만 실행되게
+        _memPush.runOnce((){ //한번만 실행되게
           Navigator.of(context).pushReplacement(MaterialPageRoute(
               builder: (context)=>
                   RunningPage(
@@ -274,11 +276,11 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     _gid = ModalRoute.of(context)!.settings.arguments as String; //인자 전 페이지에서 받아오기
 
     if(_thisGroupId!=""){ //그룹 아이디 받아오면
-      _updateGroup();
-      _pushIfStart();
+      _memGroup.runOnce(()=> _updateGroup());
+      _memPush.runOnce(()=> _pushIfStart());
     }
     if(_uid!=""){ //유저 아이디 받아오면
-      _getIsKicked();
+      _memKick.runOnce(()=> _getIsKicked());
     }
     return Scaffold(
       appBar: AppBar(
