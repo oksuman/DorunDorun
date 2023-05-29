@@ -3,6 +3,7 @@
  * (현재 친구 목록, 친구 대기 목록)로 구성되어 있습니다.
  ********************************************/
 
+import 'package:dorun_dorun/utilities/storageService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +20,31 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   bool _leftClicked = true;
   final currentUser = FirebaseAuth.instance;
+  String _uid = "";
+  String _uemail = "";
+  String _uname = "";
+
   final CollectionReference _userCollection =
   FirebaseFirestore.instance.collection("users"); //파이베이스 유저 컬렉션 가져오기
+
+  //스토리지에서 id 받아오기
+  _getMyData() async {
+    await StorageService().getUserID().then((value) {
+      setState(() {
+        _uid = value!;
+      });
+    });
+    await StorageService().getUserEmail().then((value) {
+      setState(() {
+        _uemail = value!;
+      });
+    });
+    await StorageService().getUserName().then((value) {
+      setState(() {
+        _uname = value!;
+      });
+    });
+  }
 
   _showCancelDialog(String fid) {
     showDialog(
@@ -53,11 +77,19 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _getMyData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         // 앱 상단 바
         elevation: 0,
+        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
         title: const Text(
           "친구 관리",
@@ -216,10 +248,128 @@ class _FriendsPageState extends State<FriendsPage> {
                                           color: Color.fromARGB(255, 0, 173, 181), //teal
                                         ),
                                         child: IconButton(
-                                          //친구 끝내기
                                           icon: Icon(Icons.volume_up_sharp),
                                           onPressed: () async {
-
+                                            showDialog(
+                                              // 메시지 창 뛰움
+                                                context: context,
+                                                builder: (context) {
+                                                  String msg = "";
+                                                  return AlertDialog(
+                                                    //메시지 창
+                                                      contentPadding: const EdgeInsets.all(10),
+                                                      backgroundColor:
+                                                      const Color.fromARGB(255, 238, 238, 238), //white
+                                                      content: SizedBox(
+                                                          width: MediaQuery.of(context).size.width * 0.8,
+                                                          height: 160,
+                                                          child: Column(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              children: [
+                                                                Container(
+                                                                  child: Text("응원 보내기",
+                                                                    style: const TextStyle(
+                                                                        fontFamily: "SCDream",
+                                                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                                                        fontSize: 20,
+                                                                        fontWeight: FontWeight.bold
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                  children: [
+                                                                    Container(
+                                                                      width: MediaQuery.of(context).size.width * 0.8-40,
+                                                                      child: Form(
+                                                                        child: TextFormField(
+                                                                          decoration: InputDecoration(
+                                                                              counterText: ""
+                                                                          ),
+                                                                          maxLength: 10,
+                                                                          textAlign: TextAlign.center,
+                                                                          onTap: () {
+                                                                            setState(() {
+                                                                            });
+                                                                          },
+                                                                          onChanged: (value) async {
+                                                                            setState(() {
+                                                                              if(value==null){
+                                                                                msg = "";
+                                                                              }else{
+                                                                                msg = value;
+                                                                              }
+                                                                            });
+                                                                          },
+                                                                          onSaved: (value) async {
+                                                                            setState(() {
+                                                                              if(value==null){
+                                                                                msg = "";
+                                                                              }else{
+                                                                                msg = value;
+                                                                              }
+                                                                            });
+                                                                          },
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment: MainAxisAlignment.end,
+                                                                  children: [
+                                                                    ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius:
+                                                                            BorderRadius.circular(5),
+                                                                          ),
+                                                                          backgroundColor: Colors.grey,
+                                                                          elevation: 0,
+                                                                        ),
+                                                                        child: const Text("취소",
+                                                                          style: TextStyle(
+                                                                            fontFamily: "SCDream",
+                                                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                                                            fontSize: 16,
+                                                                          ),
+                                                                        ),
+                                                                        onPressed: () async {
+                                                                          Navigator.of(context).pop();
+                                                                        }
+                                                                    ),
+                                                                    const SizedBox(width: 5,),
+                                                                    ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius:
+                                                                            BorderRadius.circular(5),
+                                                                          ),
+                                                                          backgroundColor: const Color.fromARGB(
+                                                                              255, 0, 173, 181), //teal
+                                                                          elevation: 0,
+                                                                        ),
+                                                                        child: const Text("전송",
+                                                                          style: TextStyle(
+                                                                            fontFamily: "SCDream",
+                                                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                                                            fontSize: 16,
+                                                                          ),
+                                                                        ),
+                                                                        onPressed: () async { //tts 메시지 전송
+                                                                          Navigator.of(context).pop();
+                                                                          await FirebaseService(
+                                                                            uid: currentUser.currentUser!.uid,
+                                                                            fid: documentSnapshot['id'],
+                                                                          ).ttsSend(_uname, msg);
+                                                                        }
+                                                                    )
+                                                                  ],
+                                                                )
+                                                              ]
+                                                          )
+                                                      ));
+                                                });
                                           },
                                         ),
                                       ),

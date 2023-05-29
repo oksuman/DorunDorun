@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:synchronized/synchronized.dart';
 import '../../utilities/firebaseService.dart';
 import '../../utilities/storageService.dart';
 import 'runResultPage.dart';
@@ -42,8 +43,15 @@ class RunningPage extends StatefulWidget {
 */
 class _RunningPageState extends State<RunningPage> {
   // group 컬렉션 참조
+  final CollectionReference _userCollection =
+    FirebaseFirestore.instance.collection("users"); //유저 컬렉션
   final CollectionReference _groupReference =
-  FirebaseFirestore.instance.collection("groups");
+    FirebaseFirestore.instance.collection("groups");
+  //스트림 종료 위해(최적화)
+  StreamSubscription? _ttsListen = null; //tts 다큐멘트 스트림 구독
+  List<Map<String, dynamic>> _allTtsData = []; //tts 컬렉션 데이터
+
+  Lock lock = Lock();
 
   // 이번 러닝 기록을 저장할 document 의 레퍼런스
   late final CollectionReference _logReference;
@@ -139,6 +147,32 @@ class _RunningPageState extends State<RunningPage> {
     await tts
         .speak("${times.toString()} $unit 지점을 통과하였습니다. 현재 페이스는 $pace 입니다.");
   }
+
+  void _getTtsMsg(){ //tts 스트림 열기
+    final DocumentReference userDocument = _userCollection.doc(widget.userId);
+    final CollectionReference ttsCollection =
+      userDocument.collection("tts");
+    _ttsListen = ttsCollection.snapshots().listen((event) {
+      _allTtsData = event.docs.map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    });
+  }
+  Future<void> speakAndWait(String text) async { //tts 말할때까지 대기
+    Completer<void> completer = Completer<void>();
+    tts.setCompletionHandler(() {
+      completer.complete(); // TTS 작업이 완료될 때 Future를 완료합니다.
+    });
+    await tts.speak(text); // TTS 작업 시작
+    await completer.future; // TTS 작업이 완료될 때까지 Future를 대기합니다.
+  }
+  _speakTtsMsg() async{ //tts 메시지 지속적으로 수신
+    for(int i = 0; i<_allTtsData.length; i++){
+      await speakAndWait("${_allTtsData[i]["senderName"]} 님이 메시지를 보냈습니다.   ${_allTtsData[i]["message"]}");
+      await FirebaseService(
+        uid: widget.userId,
+      ).ttsClear(_allTtsData[i]["ttsId"]);
+    }
+  }
   //////////////////////////////////////////////////////////////////////////////////////
 
   void updateMembersLog() async {
@@ -207,7 +241,8 @@ class _RunningPageState extends State<RunningPage> {
         https://docs.page/Lyokone/flutterlocation/features/notification
        */
     );
-    setTts();
+    setTts(); //tts 설정
+    _getTtsMsg(); //tts 스트림 열기
     _startTimer();
     var groupId = widget.thisGroup.getGroupId();
     _logReference = _groupReference.doc(groupId).collection("log");
@@ -236,6 +271,9 @@ class _RunningPageState extends State<RunningPage> {
   Widget build(BuildContext context) {
     updateMembersLog();
     _membersLog.debugPrintLog();
+    lock.synchronized(() async{
+      await _speakTtsMsg(); //tts speak -> synchronize 시킴
+    });
     return Scaffold(
         body: Center(
           child: Column(
@@ -449,6 +487,9 @@ class _RunningPageState extends State<RunningPage> {
                             gid: widget.thisGroup.getGroupId())
                             .endGroup(); //그룹 삭제
                       }
+                      await FirebaseService(
+                          uid: widget.userId,
+                          ).incRunCount(); //달린횟수 증가
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                           builder: (context) => RunResultPage(
                               pathMoved: pathMoved,
@@ -459,6 +500,7 @@ class _RunningPageState extends State<RunningPage> {
                               averagePace : averagePace,
                               pace : pace
                           )));
+
                     },
                     heroTag: 'strop running',
                     backgroundColor: Colors.blueGrey,
@@ -476,5 +518,10 @@ class _RunningPageState extends State<RunningPage> {
     super.dispose();
     Wakelock.disable();
     _runningTimer?.cancel();
+    try{
+      _ttsListen!.cancel(); //tts 목록 스트림 구독 끊음(최적화)
+    }catch(e){
+      print("스트림이 닫히지 않았습니다.");
+    }
   }
 }

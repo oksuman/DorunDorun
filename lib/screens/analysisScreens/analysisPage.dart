@@ -58,6 +58,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
         appBar: AppBar(
           // 앱 상단 바
           elevation: 0,
+          automaticallyImplyLeading: false,
           iconTheme:
               const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
           //white
@@ -73,6 +74,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
           //teal
           centerTitle: true,
         ),
+        backgroundColor: Color.fromARGB(255, 238, 238, 238),
         body: (_uid!="")?StreamBuilder(
             stream: _userReference
                 .doc((_thisUserId!=null)?_thisUserId:_uid) //전달받은 id or current user id
@@ -100,7 +102,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                           height: 125,
                           decoration: BoxDecoration(
                             color: const Color.fromARGB(255, 0, 173, 181),
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Center(
                             child: Column(

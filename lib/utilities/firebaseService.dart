@@ -28,6 +28,7 @@ class FirebaseService{
       "height": height,
       "weight": weight,
       "coins": 0,
+      "runs": 0,
       "group": "",
       "avatarId": (gender=="남자")?0:1,
       "isKicked": false
@@ -382,5 +383,39 @@ class FirebaseService{
     await groupDocument.update({
       "groupState": gstate,
     });
+  }
+  Future ttsSend(String senderName, String msg) async {
+    final DocumentReference userDocument = _userCollection.doc(fid);
+    final CollectionReference ttsCollection = userDocument.collection("tts");
+    //유저 컬렉션 속 tts 컬렉션 추가
+    DocumentReference ttsDocument = await ttsCollection.add({
+      "ttsId": "",
+      "senderId": uid,
+      "senderName": senderName,
+      "receiverId": fid,
+      "message": msg,
+    });
+    await ttsDocument.update({
+      "ttsId": ttsDocument.id,
+    });
+  }
+  Future ttsClear(String ttsId) async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final CollectionReference ttsCollection = userDocument.collection("tts");
+    final DocumentReference ttsDocument = ttsCollection.doc(ttsId);
+    await ttsDocument.delete();
+  }
+
+  Future incRunCount() async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "runs": FieldValue.increment(1),
+    });
+  }
+
+  Future<int> getRunCount() async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final DocumentSnapshot userSnapshot = await userDocument.get();
+    return userSnapshot.get("runs");
   }
 }
