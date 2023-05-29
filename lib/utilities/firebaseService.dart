@@ -383,4 +383,22 @@ class FirebaseService{
       "groupState": gstate,
     });
   }
+  Future ttsSend(String senderName, String msg) async {
+    final DocumentReference userDocument = _userCollection.doc(fid);
+    final CollectionReference ttsCollection = userDocument.collection("tts");
+    //유저 컬렉션 속 tts 컬렉션 추가
+    DocumentReference ttsDocument = await ttsCollection.add({
+      "ttsId": "",
+      "senderId": uid,
+      "senderName": senderName,
+      "receiverId": fid,
+      "message": msg,
+    });
+    await ttsDocument.update({
+      "ttsId": ttsDocument.id,
+    });
+  }
+  Future ttsClear() async {
+
+  }
 }
