@@ -16,6 +16,7 @@ import 'package:wakelock/wakelock.dart';
 import 'RunningSetting.dart';
 import '../analysisScreens/dataFormat.dart';
 import '../../models/group.dart';
+import 'memberLog.dart';
 
 class RunningPage extends StatefulWidget {
   // 이전 화면에서 넘겨주는 class 변수들
@@ -70,9 +71,12 @@ class _RunningPageState extends State<RunningPage> {
   List<Map<String, Object>> snapshots = List<Map<String, Object>>.empty(growable: true);
   List<Map<int, Object>> pace = List<Map<int, Object>>.empty(growable: true); // 단위 거리를 지난 시간을 기록하자.
 
+  //// 다른 Group Member 들의 달리기 현황을 저장할 Data ////
+  late membersLog _membersLog;
+  late Set<String> memberSet;
   //// Timer 관련 ////////////////////////////////////////////////////////////////
   Timer? _runningTimer;
-  int _runningSeconds = 0; // 러닝이 시작하고 흐른 시간(seconds)
+  int _runningSeconds = 0; // 러닝이 시작 하고 흐른 시간(seconds)
   void _startTimer() {
     _runningTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -137,6 +141,49 @@ class _RunningPageState extends State<RunningPage> {
   }
   //////////////////////////////////////////////////////////////////////////////////////
 
+  void updateMembersLog() async {
+    QuerySnapshot<Object?> querySnapshot = await _logReference.orderBy('delta_time', descending: true).get();
+
+
+    if(querySnapshot.docs.isNotEmpty && querySnapshot is QuerySnapshot<Map<String, dynamic>>){
+      List<DocumentSnapshot<Map<String, dynamic>>> documents = querySnapshot!.docs;
+
+      Set<String> processedRunners = {};
+      debugPrint("//////////////호출되었음/////////////////");
+      for (DocumentSnapshot<Map<String, dynamic>> document in documents) {
+        Map<String, dynamic> data = document.data()!;
+        // document에 대한 작업 수행
+        var deltaTime = data['delta_time'];
+        var runner = data['runner'];
+        debugPrint("runner : $runner");
+        debugPrint("deltaTime : $deltaTime");
+        if(processedRunners.contains(runner)){
+          debugPrint("포함된 runner : $runner");
+          continue;
+        }
+        if(
+          deltaTime > _membersLog.getLastTime(runner: runner)
+        ){
+          debugPrint("비교하는 곳");
+          debugPrint("비교 후 deltaTime : $deltaTime");
+          _membersLog.addRecentLog(
+            runner: runner as String,
+            deltaTime: deltaTime as num,
+            distanceMoved: data['accumulated_distance'] as num,
+            velocity: data['velocity'] as num,
+          );
+        }
+        processedRunners.add(runner);
+        var completed = memberSet.difference(processedRunners).isEmpty;
+        if(completed){
+          break;
+        }
+      }
+      debugPrint(_membersLog.displayRecentLog());
+    }
+  }
+  //////////////////////////////////////////////////////////////////////////////////////
+
   @override
   void initState() {
     super.initState();
@@ -177,11 +224,18 @@ class _RunningPageState extends State<RunningPage> {
     snapshots.add(initData);
     // 시작 위치를 이동 경로에 추가
     pathMoved.add(LatLng(initialLocation.latitude!, initialLocation.longitude!));
+    memberSet = widget.thisGroup.getMembersName().toSet();
+    memberSet.remove(widget.userName);
+    _membersLog = membersLog(
+      memberSet: memberSet,
+    );
     Wakelock.enable();
   }
 
   @override
   Widget build(BuildContext context) {
+    updateMembersLog();
+    _membersLog.debugPrintLog();
     return Scaffold(
         body: Center(
           child: Column(
@@ -340,7 +394,17 @@ class _RunningPageState extends State<RunningPage> {
                             color: Colors.grey,
                             width: MediaQuery.of(context).size.width,
                             height: 500,
-                            child: const Text("달리기 창"),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  if(memberSet.isEmpty)
+                                    const Text("혼자 뛰는 중"),
+                                  if(memberSet.isNotEmpty)
+                                    Text(_membersLog.displayRecentLog()),
+                                ],
+                              ),
+                            )
                           ),
                         ],
                       ),

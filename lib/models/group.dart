@@ -11,9 +11,9 @@ class Group{
   List<String> _membersId = [];
   List<String> _membersName = [];
 
-  String _groupMode = "";
-  String _basicSetting = "";
-  Map<String, double> _basicGoal = {"거리":5.0, "시간":30};
+  String _groupMode = ""; //기본모드, 협동모드, 경쟁모드
+  String _basicSetting = ""; //기본모드 -> 목표거리, 목표시간, 스피드
+  Map<String, double> _basicGoal = {"거리":5.0, "시간":30}; // -> 목표거리, 목표시간
   Map<String, bool> _membersReady = {};
 
 
