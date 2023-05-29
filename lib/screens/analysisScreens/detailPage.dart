@@ -240,9 +240,8 @@ class _DetailPageState extends State<DetailPage> {
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () async {
-                      Navigator.pop(context);
                       await location.getLocation().then((res) {
-                        Navigator.of(context).push(MaterialPageRoute(
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
                             builder: (context) => GhostRunPage(
                               logPace : widget.pace,
                               snapshots: widget.snapshots,
@@ -252,6 +251,7 @@ class _DetailPageState extends State<DetailPage> {
                               initialLocation: res,
                             )));
                       });
+
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 0, 173, 181),

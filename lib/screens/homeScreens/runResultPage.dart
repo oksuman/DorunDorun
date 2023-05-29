@@ -61,6 +61,7 @@ class _RunResultPageState extends State<RunResultPage> {
     });
   }
 
+  bool _isLoading = false;  // 기록 저장 버튼 클릭 시 true로 변경
   Future<void> _saveLogWithPath() async{
     var data = {
       "start_time": DateTime.fromMillisecondsSinceEpoch(widget.startTime),
@@ -196,32 +197,36 @@ class _RunResultPageState extends State<RunResultPage> {
             ),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () async {
-              await _saveLogWithPath();
-              Navigator.pop(context);
-              Navigator.pushNamed(context, "/toNavigationBarPage");
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+          if(!_isLoading)
+            ElevatedButton(
+              onPressed: () async {
+                setState(() {
+                  _isLoading = true; // 비대기 작업 완료 후 대기 상태 해제
+                });
+                await _saveLogWithPath();
+                Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+              ),
+              child: const Text(
+                '경로도 함께 저장하기',
+                style: TextStyle(
+                    fontFamily: "SCDream",
+                    color: Color.fromARGB(255, 238, 238, 238), //white
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
+              ),
             ),
-            child: const Text(
-              '경로도 함께 저장하기',
-              style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 238, 238, 238), //white
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
-            ),
-          ),
+          if(_isLoading)
+            const CircularProgressIndicator(),
           const SizedBox(
             height: 10,
           ),
           ElevatedButton(
             onPressed: () {
               _saveLog();
-              Navigator.pop(context);
-              Navigator.pushNamed(context, "/toNavigationBarPage");
+              Navigator.popAndPushNamed(context, "/toNavigationBarPage");
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 0, 173, 181),
@@ -240,8 +245,7 @@ class _RunResultPageState extends State<RunResultPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, "/toNavigationBarPage");
+              Navigator.popAndPushNamed(context, "/toNavigationBarPage");
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueGrey,

@@ -62,7 +62,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
           iconTheme:
               const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
           //white
-          title: Text(
+          title: const Text(
             "결과",
             style: TextStyle(
                 fontFamily: "SCDream",

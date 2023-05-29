@@ -79,6 +79,24 @@ class _RunningPageState extends State<RunningPage> {
   List<Map<String, Object>> snapshots = List<Map<String, Object>>.empty(growable: true);
   List<Map<int, Object>> pace = List<Map<int, Object>>.empty(growable: true); // 단위 거리를 지난 시간을 기록하자.
 
+  //// 모드에 따른 Setting ////////////////////////////
+  late final double distanceGoal;
+  late final int timeGoal;
+  void setMode(){
+    if(widget.thisGroup.getGroupMode() == "기본모드"){
+      if(widget.thisGroup.getBasicSetting() == "목표거리"){
+        // TODO
+      }
+      else if(widget.thisGroup.getBasicSetting() == "목표시간"){
+        // TODO
+      }
+      else{
+      // 스피드
+      }
+    }
+  }
+
+  /////////////////////////////////////////////////////
   //// 다른 Group Member 들의 달리기 현황을 저장할 Data ////
   late membersLog _membersLog;
   late Set<String> memberSet;
@@ -121,7 +139,7 @@ class _RunningPageState extends State<RunningPage> {
       _stopTimer();
     }
   }
-  ///////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////
 
   //// TTS 관련 //////////////////////////////////////////////////////////////////////
   FlutterTts tts = FlutterTts();
@@ -502,7 +520,7 @@ class _RunningPageState extends State<RunningPage> {
                           )));
 
                     },
-                    heroTag: 'strop running',
+                    heroTag: 'stop running',
                     backgroundColor: Colors.blueGrey,
                     child: const Text("Exit"),
                   ),

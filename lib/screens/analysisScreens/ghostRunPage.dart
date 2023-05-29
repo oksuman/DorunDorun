@@ -211,6 +211,10 @@ class _GhostRunPageState extends State<GhostRunPage> {
     previousLatitude = initialLocation.latitude!;
     previousLongitude = initialLocation.longitude!;
     logNum = widget.snapshots.length;
+    debugPrint("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ");
+    debugPrint("lognum : $logNum");
+    debugPrint("log snapshots : ${widget.snapshots}");
+
     logDeltaTime = widget.snapshots[logIndex]['delta_time'];
     logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
     logIndex++;
@@ -286,9 +290,12 @@ class _GhostRunPageState extends State<GhostRunPage> {
                       정확도 : 사용자가 해당 gps 데이터 근방 x미터(즉 반지름이 x인 원 안)에 있을 확률(신뢰도)가 y 퍼센트 이상이다.
                       에서 x값을 당당하는 것이 accuracy 이다.
                      */
+                    debugPrint("여기까진 실행중임");
+                    debugPrint("여기까진 실행중임 ${changedLocation?.accuracy}");
                     if ((currentLatitude != previousLatitude ||
                         currentLongitude != previousLongitude) &&
                         (changedLocation?.accuracy ?? 10) < 10) {
+                      debugPrint("실행중임");
                       final cur = LatLng(currentLatitude, currentLongitude);
                       final distanceDelta = distance.as(LengthUnit.Meter, cur, LatLng(previousLatitude, previousLongitude));
                       // 움직인 거리 업데이트
@@ -311,35 +318,39 @@ class _GhostRunPageState extends State<GhostRunPage> {
                       deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
                       // 평균 페이스 갱신
                       averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
-
-                      //// LOG 와 관련된 작업
-                      if(!logFinished){
-                        if(deltaTime >= widget.snapshots[logIndex]['delta_time']){
-                          logIndex++;
-                          if(logIndex == logNum-1){
-                            ttsFinish();
-                            logFinished = true;
-                          }
-                          else{
-                            logDeltaTime = widget.snapshots[logIndex]['delta_time'];
-                            logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
-                            logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
-                            // 상대가 단위거리 주파했는지 확인
-                            if (distanceMoved.toInt() ~/ unit1000Int > logTimesUnit) {
-                              logTimesUnit++;
-                              ttsGuideGhost2(
-                                times: logTimesUnit, unit: unit1Kilo,
-                                pace: TimeFormatting.timeVoiceFormatting(
-                                  timeInSecond : logAveragePace,
-                                ),
-                              );
-                            }
+                      previousLatitude = currentLatitude;
+                      previousLongitude = currentLongitude;
+                    }
+                    //// LOG 와 관련된 작업
+                    debugPrint("살아있나 $logFinished");
+                    if(!logFinished){
+                      debugPrint("deltaTime : $deltaTime");
+                      debugPrint("log : ${widget.snapshots[logIndex]['delta_time']}");
+                      if(_runningSeconds >= widget.snapshots[logIndex]['delta_time']){
+                        logIndex++;
+                        if(logIndex == logNum-1){
+                          ttsFinish();
+                          logFinished = true;
+                        }
+                        else{
+                          logDeltaTime = widget.snapshots[logIndex]['delta_time'];
+                          logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
+                          debugPrint("ㅡㅡㅡㅡㅡ유령꺼");
+                          debugPrint("시간 : $logDeltaTime");
+                          debugPrint("거리 : $logDistanceMoved");
+                          logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
+                          // 상대가 단위거리 주파했는지 확인
+                          if (distanceMoved.toInt() ~/ unit1000Int > logTimesUnit) {
+                            logTimesUnit++;
+                            ttsGuideGhost2(
+                              times: logTimesUnit, unit: unit1Kilo,
+                              pace: TimeFormatting.timeVoiceFormatting(
+                                timeInSecond : logAveragePace,
+                              ),
+                            );
                           }
                         }
                       }
-
-                      previousLatitude = currentLatitude;
-                      previousLongitude = currentLongitude;
                     }
                   }
                   return Center(
