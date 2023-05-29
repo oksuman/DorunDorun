@@ -89,6 +89,7 @@ class _FriendsPageState extends State<FriendsPage> {
       appBar: AppBar(
         // 앱 상단 바
         elevation: 0,
+        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
         title: const Text(
           "친구 관리",

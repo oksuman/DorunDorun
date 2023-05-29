@@ -423,6 +423,9 @@ class _RunningPageState extends State<RunningPage> {
                             gid: widget.thisGroup.getGroupId())
                             .endGroup(); //그룹 삭제
                       }
+                      await FirebaseService(
+                          uid: widget.userId,
+                          ).incRunCount(); //달린횟수 증가
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                           builder: (context) => RunResultPage(
                               pathMoved: pathMoved,
@@ -433,6 +436,7 @@ class _RunningPageState extends State<RunningPage> {
                               averagePace : averagePace,
                               pace : pace
                           )));
+
                     },
                     heroTag: 'strop running',
                     backgroundColor: Colors.blueGrey,
