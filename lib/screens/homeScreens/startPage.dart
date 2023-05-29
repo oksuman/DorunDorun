@@ -136,7 +136,9 @@ class _StartPageState extends State<StartPage> {
                   fontSize: 14,
                 ),
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, "/toCustomizePage"); //커스터마이징 페이지
+              },
               trailing: const Icon(Icons.navigate_next),
             ),
             ListTile(
