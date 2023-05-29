@@ -398,7 +398,10 @@ class FirebaseService{
       "ttsId": ttsDocument.id,
     });
   }
-  Future ttsClear() async {
-
+  Future ttsClear(String ttsId) async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final CollectionReference ttsCollection = userDocument.collection("tts");
+    final DocumentReference ttsDocument = ttsCollection.doc(ttsId);
+    await ttsDocument.delete();
   }
 }

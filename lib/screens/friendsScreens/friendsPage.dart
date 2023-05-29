@@ -355,7 +355,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                                                             fontSize: 16,
                                                                           ),
                                                                         ),
-                                                                        onPressed: () async {
+                                                                        onPressed: () async { //tts 메시지 전송
                                                                           Navigator.of(context).pop();
                                                                           await FirebaseService(
                                                                             uid: currentUser.currentUser!.uid,
