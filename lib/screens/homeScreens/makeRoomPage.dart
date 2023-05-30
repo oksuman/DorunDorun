@@ -134,6 +134,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         _thisGroup.setAdminName(_groupData["adminName"]);
         _thisGroup.setMembersId(_groupData["membersId"]);
         _thisGroup.setMembersName(_groupData["membersName"]);
+        _thisGroup.setMembersAvatar(_groupData["membersAvatar"]);
         _thisGroup.setMembersReady(_groupData["membersReady"]);
         _thisGroup.setGroupMode(_groupData["groupMode"]);
         _thisGroup.setBasicSetting(_groupData["basicSetting"]);

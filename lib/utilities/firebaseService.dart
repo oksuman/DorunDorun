@@ -27,10 +27,9 @@ class FirebaseService{
       "age": age,
       "height": height,
       "weight": weight,
-      "coins": 0,
       "runs": 0,
       "group": "",
-      "avatarId": (gender=="남자")?0:1,
+      "avatarId": (gender=="남자")?"00":"01",
       "isKicked": false
     });
   }
@@ -147,14 +146,17 @@ class FirebaseService{
       "compSetting": "최저 페이스",
       "compGoal": {"목표 거리":5, "최저 페이스":10,},
     });
+    
+    DocumentReference userDocument = _userCollection.doc(uid);
+    final DocumentSnapshot userSnapshot = await userDocument.get();
     //멤버에 자신 추가
     await groupDocument.update({
       "membersId": FieldValue.arrayUnion([uid]),
       "membersName": FieldValue.arrayUnion([adminName]),
+      "membersAvatar": {uid:userSnapshot.get("avatarId")},
       "groupId": groupDocument.id,
     });
     //내가 속한 그룹 업데이트
-    DocumentReference userDocument = _userCollection.doc(uid);
     await userDocument.update({
       "group": groupDocument.id,
     });
@@ -206,14 +208,24 @@ class FirebaseService{
         tempReady[key] = false;
     });
     tempReady[uid!] = false;
+    
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final DocumentSnapshot userSnapshot = await userDocument.get();
+    Map<String, String> tempAvatar = {};
+    groupSnapshot.get("membersAvatar").forEach((key, value) {
+      tempAvatar[key] = value.toString();
+    });
+    tempAvatar[uid!] = userSnapshot.get("avatarId");
+    
     await groupDocument.update({
       "membersId": FieldValue.arrayUnion([uid]),
       "membersName": FieldValue.arrayUnion([uname]),
       "membersNum" : FieldValue.increment(1),
       "membersReady": tempReady,
+      "membersAvatar": tempAvatar,
     });
     //내가 속한 그룹 업데이트
-    final DocumentReference userDocument = _userCollection.doc(uid);
+    
     await userDocument.update({
       "group": gid,
     });
@@ -247,10 +259,18 @@ class FirebaseService{
         tempReady[key] = false;
     });
     tempReady.remove(uid);
+
+    Map<String, String> tempAvatar = {};
+    groupSnapshot.get("membersAvatar").forEach((key, value) {
+      tempAvatar[key] = value.toString();
+    });
+    tempAvatar.remove(uid);
+    
     await groupDocument.update({
       "membersId": FieldValue.arrayRemove([uid]),
       "membersName": FieldValue.arrayRemove([uname]),
       "membersReady": tempReady,
+      "membersAvatar": tempAvatar,
       "membersNum" : FieldValue.increment(-1),
 
     });
@@ -275,14 +295,22 @@ class FirebaseService{
         tempReady[key] = false;
     });
     tempReady.remove(uid);
+    tempReady[nextId] = true;
+
+    Map<String, String> tempAvatar = {};
+    groupSnapshot.get("membersAvatar").forEach((key, value) {
+      tempAvatar[key] = value.toString();
+    });
+    tempAvatar.remove(uid);
+    
     await groupDocument.update({
       "adminId" : nextId,
       "adminName" : nextName,
       "membersId": FieldValue.arrayRemove([uid]),
       "membersName": FieldValue.arrayRemove([uname]),
       "membersReady": tempReady,
+      "membersAvatar": tempAvatar,
       "membersNum" : FieldValue.increment(-1),
-
     });
     //유저 상태 초기화
     final DocumentReference userDocument = _userCollection.doc(uid);
@@ -309,6 +337,7 @@ class FirebaseService{
     //그룹 업데이트
     final DocumentReference groupDocument = _groupCollection.doc(gid);
     final DocumentSnapshot groupSnapshot = await groupDocument.get();
+    
     Map<String, bool> tempReady = {};
     groupSnapshot.get("membersReady").forEach((key, value) {
       if(value.toString()=="true")
@@ -317,10 +346,18 @@ class FirebaseService{
         tempReady[key] = false;
     });
     tempReady.remove(fid);
+
+    Map<String, String> tempAvatar = {};
+    groupSnapshot.get("membersAvatar").forEach((key, value) {
+      tempAvatar[key] = value.toString();
+    });
+    tempAvatar.remove(fid);
+    
     await groupDocument.update({
       "membersId": FieldValue.arrayRemove([fid]),
       "membersName": FieldValue.arrayRemove([fname]),
       "membersReady": tempReady,
+      "membersAvatar": tempAvatar,
       "membersNum" : FieldValue.increment(-1),
 
     });
@@ -332,13 +369,13 @@ class FirebaseService{
   }
 
   //아바타 ID get
-  Future<int> getAvatarId() async {
+  Future<String> getAvatarId() async {
     final DocumentReference userDocument = _userCollection.doc(uid);
     final DocumentSnapshot userSnapshot = await userDocument.get();
     return userSnapshot.get("avatarId");
   }
   //아바타 ID set
-  Future setAvatarId(int avatarId) async {
+  Future setAvatarId(String avatarId) async {
     final DocumentReference userDocument = _userCollection.doc(uid);
     await userDocument.update({
       "membersId": avatarId,

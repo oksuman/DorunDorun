@@ -23,7 +23,9 @@ class Group{
   String _compSetting = "";
   Map<String, double> _compGoal = {"거리":5.0, "페이스":10};
 
+  Map<String, String> _membersAvatar = {};
   Map<String, bool> _membersReady = {};
+
 
 
   //그룹 GetSet
@@ -50,6 +52,12 @@ class Group{
     _membersName.clear();
     mnameList.forEach((element) {
       _membersName.add(element.toString());
+    });
+  }
+  setMembersAvatar(Map<String, dynamic> memAvatar){
+    _membersAvatar.clear();
+    _membersAvatar.forEach((key, value) {
+      _membersAvatar[key] = value.toString();
     });
   }
   setMembersReady(Map<String, dynamic> memReady){
@@ -113,6 +121,9 @@ class Group{
   }
   Map<String, bool> getMembersReady(){
     return _membersReady;
+  }
+  Map<String, String> getMembersAvatar(){
+    return _membersAvatar;
   }
   bool getReady(String uid){
     if(_membersReady[uid]!=null){
