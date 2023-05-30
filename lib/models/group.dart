@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /**********************************
  * 그룹의 정보를 가지고 있는 클래스입니다. *
  **********************************/
@@ -12,8 +14,15 @@ class Group{
   List<String> _membersName = [];
 
   String _groupMode = ""; //기본모드, 협동모드, 경쟁모드
+
   String _basicSetting = ""; //기본모드 -> 목표거리, 목표시간, 스피드
   Map<String, double> _basicGoal = {"거리":5.0, "시간":30}; // -> 목표거리, 목표시간
+
+  String _coopSetting = "";
+
+  String _compSetting = "";
+  Map<String, double> _compGoal = {"거리":5.0, "페이스":10};
+
   Map<String, bool> _membersReady = {};
 
 
@@ -67,6 +76,18 @@ class Group{
       _basicGoal[key] = double.parse(value.toString());
     });
   }
+  setCoopSetting(String copsetting){
+    _coopSetting=copsetting;
+  }
+  setCompSetting(String cmpsetting){
+    _compSetting=cmpsetting;
+  }
+  setCompGoal(Map<String, dynamic> cmpgoal){
+    _compGoal.clear();
+    cmpgoal.forEach((key, value) {
+      _compGoal[key] = double.parse(value.toString());
+    });
+  }
 
   int getMembersNum(){
     return _membersId.length;
@@ -108,6 +129,27 @@ class Group{
   }
   Map<String, double> getBasicGoal(){
     return _basicGoal;
+  }
+  String getCoopSetting(){
+    return _coopSetting;
+  }
+  double getCoopGoal(int opt){
+    switch(_coopSetting){
+      case "1단계":
+        return (opt==0)?10:15;
+      case "2단계":
+        return (opt==0)?15:12;
+      case "3단계":
+        return (opt==0)?20:10;
+      default:
+        return 0;
+    }
+  }
+  String getCompSetting(){
+    return _compSetting;
+  }
+  Map<String, double> getCompGoal(){
+    return _compGoal;
   }
 
 }

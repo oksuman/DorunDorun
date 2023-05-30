@@ -138,6 +138,9 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
         _thisGroup.setGroupMode(_groupData["groupMode"]);
         _thisGroup.setBasicSetting(_groupData["basicSetting"]);
         _thisGroup.setBasicGoal(_groupData["basicGoal"]);
+        _thisGroup.setCoopSetting(_groupData["coopSetting"]);
+        _thisGroup.setCompSetting(_groupData["compSetting"]);
+        _thisGroup.setCompGoal(_groupData["compGoal"]);
         _isAdmin = (_thisGroup.getAdminId()==_uid); //내 아이디가 그룹의 admin 아이디와 같으면: isAdmin을 true로
 
         for(int i = 0; i<_thisGroup.getMembersNum(); i++){
@@ -389,7 +392,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                         });
                         await FirebaseService(
                           gid: _thisGroupId,
-                        ).setCoopMode();
+                        ).setCoopMode(_thisGroup.getCoopSetting());
                       }
                     },
                     child: Container(
@@ -421,7 +424,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                         });
                         await FirebaseService(
                           gid: _thisGroupId,
-                        ).setCompMode();
+                        ).setCompMode(_thisGroup.getCompSetting(), _thisGroup.getCompGoal());
                       }
                     },
                     child: Container(
@@ -452,7 +455,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
               _modeOptionWidget(), //러닝 설정 창(밑에 있음)
               Container(
                 width: MediaQuery.of(context).size.width,
-                height: 100,
+                height: 80,
                 child: Center(
                   child: ElevatedButton(
                     //달리기 버튼
@@ -807,43 +810,16 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       ),
     );
   }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
   //모드 설정 창
   Widget _modeOptionWidget() {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height-531, //351+56+24=431
+        height: MediaQuery.of(context).size.height-511, //321+56+24=431 +80
         child: (_thisGroup.getGroupMode() == "basic")?
         _basicModeWidget():(_thisGroup.getGroupMode() == "coop")?
-        Column(
-          children: const [
-            Padding(
-              padding: EdgeInsets.only(top:20),
-              child: Text("친구들과 함께 협동하여 공동목표를 달성하는 모드입니다.",
-                style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 34, 40, 49), //black
-                  fontSize: 14,
-                ),
-              ),
-            ),
-
-          ],
-        ):(_thisGroup.getGroupMode() == "comp")?
-        Column(
-          children: const [
-            Padding(
-              padding: EdgeInsets.only(top:20),
-              child: Text("친구들과 경쟁하여 서로 순위를 비교할 수 있는 모드입니다.",
-                style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 34, 40, 49), //black
-                  fontSize: 14,
-                ),
-              ),
-            ),
-
-          ],
-        ):const Center(child: const CircularProgressIndicator())
+        _coopModeWidget():(_thisGroup.getGroupMode() == "comp")?
+        _compModeWidget():const Center(child: const CircularProgressIndicator())
     );
   }
   Widget _basicModeWidget(){
@@ -917,7 +893,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
             onPressed: (){
               if(_thisGroup.getBasicSetting()!="스피드 측정" && _isAdmin){
                 showDialog(
-                  // 메시지 창 뛰움
+                  // 메시지 창 띄움
                     context: context,
                     builder: (context) {
                       double tempVal = 0;
@@ -1052,13 +1028,322 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                           ));
                     });
               }
-
             },
             child: Text((_thisGroup.getBasicSetting()=="목표 거리")
                 ?_thisGroup.getBasicGoal()[_thisGroup.getBasicSetting()]!.toStringAsFixed(2)+" KM"
                 :(_thisGroup.getBasicSetting()=="목표 시간")
                 ?_thisGroup.getBasicGoal()[_thisGroup.getBasicSetting()]!.toStringAsFixed(0)+" 분"
                 :"랩타임",
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 57, 62, 70), //grey
+                fontWeight: FontWeight.w900,
+                fontSize: 60,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+  Widget _coopModeWidget(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top:20),
+          child: Text("친구들과 함께 협동하여 공동목표를 달성하는 모드입니다.",
+            style: TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontSize: 14,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: (){
+            if (_isAdmin) {
+              showCupertinoModalPopup(context: context,
+                  builder: (BuildContext context) => CupertinoActionSheet(
+                    //title: const Text(""),
+                    actions: [
+                      CupertinoActionSheetAction(
+                        child: const Text("1단계"),
+                        onPressed: () async{
+                          _thisGroup.setCoopSetting("1단계");
+                          Navigator.pop(context);
+                          await FirebaseService(
+                            gid: _thisGroupId,
+                          ).setCoopMode(_thisGroup.getCoopSetting());
+                        },
+                      ),
+                      CupertinoActionSheetAction(
+                        child: const Text("2단계"),
+                        onPressed: () async{
+                          _thisGroup.setCoopSetting("2단계");
+                          Navigator.pop(context);
+                          await FirebaseService(
+                            gid: _thisGroupId,
+                          ).setCoopMode(_thisGroup.getCoopSetting());
+                        },
+                      ),
+                      CupertinoActionSheetAction(
+                        child: const Text("3단계"),
+                        onPressed: () async{
+                          _thisGroup.setCoopSetting("3단계");
+                          Navigator.pop(context);
+                          await FirebaseService(
+                            gid: _thisGroupId,
+                          ).setCoopMode(_thisGroup.getCoopSetting());
+                        },
+                      ),
+                    ],
+                  ));
+            }
+          },
+          child: Text(_thisGroup.getCoopSetting(),
+            style: const TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 57, 62, 70), //grey
+              fontWeight: FontWeight.bold,
+              fontSize: 30,
+            ),
+          ),
+        ),
+        Container(
+          width: 180,
+          height: 120,
+          color: Colors.grey,
+        ),
+        SizedBox(height: 10,),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("총합 ${_thisGroup.getCoopGoal(0)} KM",
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 57, 62, 70), //grey
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text("최저 ${_thisGroup.getCoopGoal(1)} pace",
+              style: const TextStyle(
+                fontFamily: "SCDream",
+                color: Color.fromARGB(255, 57, 62, 70), //grey
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+  Widget _compModeWidget(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top:20),
+          child: Text("친구들과 경쟁하여 서로 순위를 비교할 수 있는 모드입니다.",
+            style: TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontSize: 14,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10,),
+        TextButton(
+          onPressed: (){
+            if (_isAdmin) {
+              showCupertinoModalPopup(context: context,
+                  builder: (BuildContext context) => CupertinoActionSheet(
+                    //title: const Text(""),
+                    actions: [
+                      CupertinoActionSheetAction(
+                        child: const Text("최저 페이스"),
+                        onPressed: () async{
+                          _thisGroup.setCompSetting("최저 페이스");
+                          Navigator.pop(context);
+                          await FirebaseService(
+                            gid: _thisGroupId,
+                          ).setCompMode(_thisGroup.getCompSetting(),_thisGroup.getCompGoal());
+                        },
+                      ),
+                      CupertinoActionSheetAction(
+                        child: const Text("목표 거리"),
+                        onPressed: () async{
+                          _thisGroup.setCompSetting("목표 거리");
+                          Navigator.pop(context);
+                          await FirebaseService(
+                            gid: _thisGroupId,
+                          ).setCompMode(_thisGroup.getCompSetting(),_thisGroup.getCompGoal());
+                        },
+                      ),
+                    ],
+                  ));
+            }
+          },
+          child: Text(_thisGroup.getCompSetting(),
+            style: const TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 57, 62, 70), //grey
+              fontWeight: FontWeight.bold,
+              fontSize: 30,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom:20),
+          child: TextButton(
+            onPressed: (){
+              if(_isAdmin){
+                showDialog(
+                  // 메시지 창 띄움
+                    context: context,
+                    builder: (context) {
+                      double tempVal = 0;
+                      return AlertDialog(
+                        //메시지 창
+                          contentPadding: const EdgeInsets.all(10),
+                          backgroundColor:
+                          const Color.fromARGB(255, 238, 238, 238), //white
+                          content: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              height: 160,
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      child: Text(_thisGroup.getCompSetting(),
+                                        style: const TextStyle(
+                                            fontFamily: "SCDream",
+                                            color: Color.fromARGB(255, 34, 40, 49), //black
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: MediaQuery.of(context).size.width * 0.8-80,
+                                          child: Form(
+                                            child: TextFormField(
+                                              decoration: InputDecoration(
+                                                  counterText: ""
+                                              ),
+                                              maxLength: 4,
+                                              keyboardType: TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                                              ],
+                                              textAlign: TextAlign.end,
+                                              onTap: () {
+                                                setState(() {
+                                                });
+                                              },
+                                              onChanged: (value) async {
+                                                //텍스트 필드 값 바뀔 시
+                                                setState(() {
+                                                  if(value==null){
+                                                    tempVal = 0;
+                                                  }else{
+                                                    tempVal = double.parse(value);
+                                                  }
+                                                });
+                                              },
+                                              onSaved: (value) async {
+                                                setState(() {
+                                                  if(value==null){
+                                                    tempVal = 0;
+                                                  }else{
+                                                    tempVal = double.parse(value);
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        Text((_thisGroup.getCompSetting()=="목표 거리")?"KM":"분",
+                                          style: const TextStyle(
+                                            fontFamily: "SCDream",
+                                            color: Color.fromARGB(255, 34, 40, 49), //black
+                                            fontSize: 16,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius.circular(5),
+                                              ),
+                                              backgroundColor: Colors.grey,
+                                              elevation: 0,
+                                            ),
+                                            child: const Text("취소",
+                                              style: TextStyle(
+                                                fontFamily: "SCDream",
+                                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+                                            }
+                                        ),
+                                        const SizedBox(width: 5,),
+                                        ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius.circular(5),
+                                              ),
+                                              backgroundColor: const Color.fromARGB(
+                                                  255, 0, 173, 181), //teal
+                                              elevation: 0,
+                                            ),
+                                            child: const Text("설정",
+                                              style: TextStyle(
+                                                fontFamily: "SCDream",
+                                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+                                              if(tempVal!=0){
+                                                _thisGroup.getCompGoal()[_thisGroup.getCompSetting()] = tempVal;
+                                                await FirebaseService(
+                                                  gid: _thisGroupId,
+                                                ).setCompMode(_thisGroup.getCompSetting(),_thisGroup.getCompGoal());
+                                              }
+                                            }
+                                        )
+
+                                      ],
+                                    )
+                                  ]
+                              )
+                          ));
+                    });
+              }
+            },
+            child: Text((_thisGroup.getCompSetting()=="목표 거리")
+                ?_thisGroup.getCompGoal()[_thisGroup.getCompSetting()]!.toStringAsFixed(2)+" KM"
+                :_thisGroup.getCompGoal()[_thisGroup.getCompSetting()]!.toStringAsFixed(0)+" pace"
+                ,
               style: const TextStyle(
                 fontFamily: "SCDream",
                 color: Color.fromARGB(255, 57, 62, 70), //grey

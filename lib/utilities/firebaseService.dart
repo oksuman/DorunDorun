@@ -143,6 +143,9 @@ class FirebaseService{
       "groupMode": "basic",
       "basicSetting": "목표 거리",
       "basicGoal": {"목표 거리":5, "목표 시간":30,},
+      "coopSetting": "1단계",
+      "compSetting": "최저 페이스",
+      "compGoal": {"목표 거리":5, "최저 페이스":10,},
     });
     //멤버에 자신 추가
     await groupDocument.update({
@@ -350,16 +353,19 @@ class FirebaseService{
       "basicGoal": bGoal,
     });
   }
-  Future setCoopMode() async {
+  Future setCoopMode(String copSetting) async {
     final DocumentReference groupDocument = _groupCollection.doc(gid);
     await groupDocument.update({
       "groupMode": "coop",
+      "coopSetting": copSetting,
     });
   }
-  Future setCompMode() async {
+  Future setCompMode(String cmpSetting, Map<String,dynamic> cmpGoal) async {
     final DocumentReference groupDocument = _groupCollection.doc(gid);
     await groupDocument.update({
       "groupMode": "comp",
+      "compSetting": cmpSetting,
+      "compGoal": cmpGoal,
     });
   }
   Future setReady(bool isready) async {
