@@ -120,4 +120,16 @@ class membersLog{
       debugPrint("snapshots : ${member.snapshots}");
     }
   }
+
+  Map<String, Object> getLastSnapshot({
+    required String runner,
+  }){
+    late  Map<String, Object> snapshot;
+    for(var member in members){
+      if(member.getRunnerName() == runner){
+        snapshot = member.getLastSnapshot();
+      }
+    }
+    return snapshot;
+  }
 }
