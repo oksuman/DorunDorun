@@ -60,29 +60,10 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
 
   Location location = Location();
 
-  // gps 사용 권한
-  late bool _serviceEnabled;
-  late PermissionStatus _permissionGranted;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                        Functions                                              //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-  // gps 사용 권한 받기
-  _giveAuthority() async {
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.serviceEnabled();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.hasPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-  }
+
   //스토리지에서 내 데이터 받아오기
   _getMyData() async {
     await StorageService().getUserID().then((value) {
@@ -260,7 +241,6 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   @override
   void initState() {
     super.initState();
-    _giveAuthority();
     _setGroup(); //그룹 초기 설정
   }
   //위젯 종료 시

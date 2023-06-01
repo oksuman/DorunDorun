@@ -250,15 +250,6 @@ class _RunningPageState extends State<RunningPage> {
       interval: 3000,
       distanceFilter: 5,
     );
-    // Background Gps Tracking 활성화
-    location.enableBackgroundMode(enable: true);
-    // Background Gps Tracking 을 어떻게 표시할 것인지
-    location.changeNotificationOptions(
-      //TODO Background 작동시 보여주는 방식 설정
-      /*
-        https://docs.page/Lyokone/flutterlocation/features/notification
-       */
-    );
     setTts(); //tts 설정
     _getTtsMsg(); //tts 스트림 열기
     _startTimer();

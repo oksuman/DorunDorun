@@ -144,12 +144,12 @@ class _SignInPageState extends State<SignInPage> {
                             if(FirebaseAuth.instance.currentUser == null){
                               debugPrint("null");
                             }
-                            QuerySnapshot snapshot = await FirebaseService(
-                                uid: FirebaseAuth.instance.currentUser!.uid)
-                                .getUserData(_userEmail); //유저 데이터 이메일로 받이오기
                             final newUser =
                             await _authentication.signInWithEmailAndPassword(
                                 email: _userEmail, password: _userPassword); //파이어베이스 계정 확인
+                            QuerySnapshot snapshot = await FirebaseService(
+                                uid: FirebaseAuth.instance.currentUser!.uid)
+                                .getUserData(_userEmail); //유저 데이터 이메일로 받이오기
                             if(newUser.user != null){
                               await StorageService().saveUserLoggedInStatus("true"); //스토리지에 로그인 정보 저장
                               await StorageService().saveUserName(snapshot.docs[0]['fullName']); //스토리지에 닉네임 저장

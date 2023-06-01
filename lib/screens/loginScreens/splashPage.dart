@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dorun_dorun/utilities/storageService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../utilities/firebaseService.dart';
 
 class SplashPage extends StatefulWidget {
@@ -28,6 +29,32 @@ class _SplashPageState extends State<SplashPage> {
         _userPassword = value;
       });
     });
+  }
+
+  void _permission() async {
+    var reqLocStatus = await Permission.location.request();
+    // var reqBgStatus = await Permission.locationAlways.request();
+    var locStatus = await Permission.location.status;
+    // var bgStatus = await Permission.locationAlways.status;
+
+    if (reqLocStatus.isPermanentlyDenied || locStatus.isPermanentlyDenied) {
+      print("isPermanentlyDenied");
+      openAppSettings(); // 권한 요청 거부, 해당 권한에 대한 요청에 대해 다시 묻지 않음 선택하여 설정화면에서 변경해야함. android
+    } else if (locStatus.isRestricted) {
+      print("isRestricted");
+      openAppSettings(); // 권한 요청 거부, 해당 권한에 대한 요청을 표시하지 않도록 선택하여 설정화면에서 변경해야함. ios
+    }
+
+    /*
+    -> 백그라운드
+    if (reqBgStatus.isPermanentlyDenied || bgStatus.isPermanentlyDenied) {
+      print("isPermanentlyDenied");
+      openAppSettings(); // 권한 요청 거부, 해당 권한에 대한 요청에 대해 다시 묻지 않음 선택하여 설정화면에서 변경해야함. android
+    } else if (bgStatus.isRestricted) {
+      print("isRestricted");
+      openAppSettings(); // 권한 요청 거부, 해당 권한에 대한 요청을 표시하지 않도록 선택하여 설정화면에서 변경해야함. ios
+    }
+     */
   }
 
   //자동 로그인
@@ -60,6 +87,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    _permission();
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _tryAutoLogin()); //빌드 후 실행
   }
