@@ -174,7 +174,9 @@ class _StartPageState extends State<StartPage> {
                   fontSize: 14,
                 ),
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, "/toSettingPage"); //세팅 페이지
+              },
               trailing: const Icon(Icons.navigate_next),
             ),
             ListTile(

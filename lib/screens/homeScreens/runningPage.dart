@@ -468,6 +468,8 @@ class _RunningPageState extends State<RunningPage> {
                   FloatingActionButton(
                     onPressed: () => setState(() {
                       btnClicked();
+                      tts.speak("text");
+                      print("speak");
                     }),
                     heroTag: 'pause/restart running',
                     backgroundColor: btnColor,

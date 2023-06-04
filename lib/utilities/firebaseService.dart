@@ -28,6 +28,7 @@ class FirebaseService{
       "height": height,
       "weight": weight,
       "runs": 0,
+      "inside": false,
       "group": "",
       "avatarId": (gender=="남자")?"00":"01",
       "isKicked": false
@@ -460,5 +461,18 @@ class FirebaseService{
     final DocumentReference userDocument = _userCollection.doc(uid);
     final DocumentSnapshot userSnapshot = await userDocument.get();
     return userSnapshot.get("runs");
+  }
+
+  Future setInsideCheck(bool icheck) async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    await userDocument.update({
+      "inside": icheck,
+    });
+  }
+
+  Future<bool> getInsideCheck() async {
+    final DocumentReference userDocument = _userCollection.doc(uid);
+    final DocumentSnapshot userSnapshot = await userDocument.get();
+    return userSnapshot.get("inside");
   }
 }
