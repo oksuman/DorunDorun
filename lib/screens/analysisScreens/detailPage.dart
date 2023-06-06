@@ -48,24 +48,21 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          // 앱 상단 바
+        appBar: AppBar( //앱 상단 바
           elevation: 0,
-          iconTheme:
-              const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
-          //white
+          iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
           title: const Text(
-            "상세",
+            "상세 보기",
             style: TextStyle(
                 fontFamily: "SCDream",
-                color: Color.fromARGB(255, 238, 238, 238), //white
+                color: Color.fromARGB(255, 34, 40, 49),
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: const Color.fromARGB(255, 0, 173, 181),
-          //teal
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           centerTitle: true,
         ),
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238), 
 
         body: ListView(
                 padding: const EdgeInsets.all(8),
@@ -84,12 +81,13 @@ class _DetailPageState extends State<DetailPage> {
                   const SizedBox(height: 10),
                   if (widget.pathMoved != null)
                     Container(
-                      margin: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                           border: Border.all(
-                            color: Colors.greenAccent,
-                            width: 8.0,
+                            color: const Color.fromARGB(255, 0, 173, 181),
+                            width: 4.0,
                           )),
+                      width: double.infinity,
                       height: 400,
                       alignment: Alignment.centerLeft,
                       child: FlutterMap(
@@ -97,6 +95,7 @@ class _DetailPageState extends State<DetailPage> {
                           center: LatLngFormatting.toLatLng(
                               widget.pathMoved!)[widget.pathMoved!.length ~/ 2],
                           minZoom: 13,
+                          maxZoom:  18,
                           zoom: 15,
                           maxBounds: LatLngBounds(LatLng(30, 120), LatLng(40, 140)),
                         ),
@@ -123,7 +122,7 @@ class _DetailPageState extends State<DetailPage> {
                         ],
                       ),
                     ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   Text(
                     "달린 거리 : ${widget.distanceMoved} km",
                     textAlign: TextAlign.center,
@@ -131,7 +130,7 @@ class _DetailPageState extends State<DetailPage> {
                       fontFamily: "SCDream",
                       color: Color.fromARGB(255, 34, 40, 49), //black
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -142,7 +141,7 @@ class _DetailPageState extends State<DetailPage> {
                       fontFamily: "SCDream",
                       color: Color.fromARGB(255, 34, 40, 49), //black
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -153,7 +152,7 @@ class _DetailPageState extends State<DetailPage> {
                       fontFamily: "SCDream",
                       color: Color.fromARGB(255, 34, 40, 49), //black
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
                   const SizedBox(height: 50),
@@ -225,19 +224,11 @@ class _DetailPageState extends State<DetailPage> {
                           );
                         }
                         else{
-                          debugPrint("rlatmdgn");
                           return const Center(child: CircularProgressIndicator());
                         }
                       }
                   ),
-                  const SizedBox(height: 50),
-                  Container(
-                    color: Colors.grey,
-                    width: MediaQuery.of(context).size.width,
-                    height: 50,
-                    child: const Text("km 별 시간대 구현 예정"),
-                  ),
-                  const SizedBox(height: 10),
+
                   ElevatedButton(
                     onPressed: () async {
                       await location.getLocation().then((res) {
