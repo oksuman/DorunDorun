@@ -57,21 +57,18 @@ class _AnalysisPageState extends State<AnalysisPage> {
     return Scaffold(
         appBar: AppBar(
           // 앱 상단 바
-          elevation: 0,
           automaticallyImplyLeading: false,
-          iconTheme:
-              const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
-          //white
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
           title: const Text(
             "결과",
             style: TextStyle(
                 fontFamily: "SCDream",
-                color: Color.fromARGB(255, 238, 238, 238), //white
+                color: Color.fromARGB(255, 34, 40, 49),
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: const Color.fromARGB(255, 0, 173, 181),
-          //teal
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           centerTitle: true,
         ),
         backgroundColor: Color.fromARGB(255, 238, 238, 238),
@@ -94,62 +91,66 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 ) {
               if (logs.hasData) {
                 return ListView.separated(
-                  padding: const EdgeInsets.all(15),
                   itemCount: logs.data!.docs.length,
                   itemBuilder: (BuildContext context, int index) {
                     return ListTile(
                       title: Container(
-                          height: 125,
+                          height: 120,
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 0, 173, 181),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                // 운동 시작 날짜 표시
-                                Text(
-                                  DateFormatting.dateFormatting(logs
-                                      .data!.docs[index]["start_time"]
-                                      .toDate()),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // 운동 시작 날짜 표시
+                              Text(
+                                DateFormatting.dateFormatting(logs
+                                    .data!.docs[index]["start_time"]
+                                    .toDate()),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontFamily: "SCDream",
+                                    fontWeight: FontWeight.w900,
+                                    color: Color.fromARGB(255, 0, 173, 181),
+                                    fontSize: 20),
+                              ),
+                              // 평균 페이스 표시
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                  '운동 시간 ${logs.data!.docs[index]["running_time"]}',
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
-                                      fontFamily: "SCDream",
                                       fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 238, 238, 238),
-                                      fontSize: 20),
-                                ),
-                                // 평균 페이스 표시
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                    '운동 시간 ${logs.data!.docs[index]["running_time"]}',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: "SCDream",
-                                        color: Color.fromARGB(255, 34, 40, 49),
-                                        fontSize: 15)),
-                                Text(
-                                    '페이스 ${logs.data!.docs[index]["average_pace"]}',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: "SCDream",
-                                        color: Color.fromARGB(255, 34, 40, 49),
-                                        fontSize: 15)),
-                                // 달린 거리 표시
-                                Text(
-                                    '달린 거리 ${(logs.data!.docs[index]["total_distance"] / 1000).toStringAsFixed(2)} km',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: "SCDream",
-                                        color: Color.fromARGB(255, 34, 40, 49),
-                                        fontSize: 15)),
-                              ],
-                            ),
+                                      fontFamily: "SCDream",
+                                      color: Color.fromARGB(255, 34, 40, 49),
+                                      fontSize: 14)),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                  '페이스 ${logs.data!.docs[index]["average_pace"]}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: "SCDream",
+                                      color: Color.fromARGB(255, 34, 40, 49),
+                                      fontSize: 14)),
+                              // 달린 거리 표시
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                  '달린 거리 ${(logs.data!.docs[index]["total_distance"] / 1000).toStringAsFixed(2)} km',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: "SCDream",
+                                      color: Color.fromARGB(255, 34, 40, 49),
+                                      fontSize: 14)),
+                            ],
                           )),
                       // 해당 기록을 터치했을 경우, 자세한 기록 정보를 볼 수 있는 페이지로 이동
                       onTap: () {

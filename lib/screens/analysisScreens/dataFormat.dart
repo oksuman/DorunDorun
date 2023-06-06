@@ -10,7 +10,7 @@ import 'package:latlong2/latlong.dart';
 */
 class DateFormatting{
   static String dateFormatting(DateTime date){
-    var formatDate = DateFormat('MMM-dd h:mma').format(date);
+    var formatDate = DateFormat('yy.MM.dd - HH시 mm분').format(date);
     return formatDate;
   }
 }

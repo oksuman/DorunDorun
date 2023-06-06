@@ -46,7 +46,6 @@ class MyApp extends StatelessWidget {
           '/toSignUpPage': (context) => const SignUpPage(), //계정생성 페이지 이동
           '/toMakeUserPage': (context) => const MakeUserPage(), //유저 정보 작성 페이지 이동
           '/toNavigationBarPage': (context) => const NavigationBarPage(), //네비게이션 바 페이지 이동
-          '/toCustomizePage': (context) => const CustomizePage(), //커스터마이징 페이지 이동
           '/toMakeRoomPage': (context) => const MakeRoomPage(), //러너 방 생성 페이지 이동
           '/toAnalysisPage': (context) => const AnalysisPage(), //Analysis 페이지 이동
           '/toFindFriendPage': (context) => const FindFriendPage(), //친구 추가 페이지 이동

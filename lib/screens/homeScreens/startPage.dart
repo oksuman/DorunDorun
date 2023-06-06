@@ -136,25 +136,6 @@ class _StartPageState extends State<StartPage> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.checkroom_sharp),
-              iconColor: const Color.fromARGB(255, 0, 173, 181),
-              //teal
-              focusColor: const Color.fromARGB(255, 0, 173, 181),
-              //teal
-              title: const Text(
-                '꾸미기',
-                style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 34, 40, 49), //black
-                  fontSize: 14,
-                ),
-              ),
-              onTap: () {
-                Navigator.pushNamed(context, "/toCustomizePage"); //커스터마이징 페이지
-              },
-              trailing: const Icon(Icons.navigate_next),
-            ),
-            ListTile(
               leading: const Icon(Icons.mark_as_unread_sharp),
               iconColor: const Color.fromARGB(255, 0, 173, 181),
               //teal

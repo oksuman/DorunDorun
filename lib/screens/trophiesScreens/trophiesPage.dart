@@ -36,6 +36,20 @@ class _TrophiesPageState extends State<TrophiesPage> {
     Image.asset("assets/images/level4.png"),
     Image.asset("assets/images/level5.png"),
   ];
+  List<Image> _contextImgList = [
+    Image.asset("assets/images/level1_context.jpg"),
+    Image.asset("assets/images/level2_context.jpg"),
+    Image.asset("assets/images/level3_context.jpg"),
+    Image.asset("assets/images/level4_context.jpg"),
+    Image.asset("assets/images/level5_context.jpg"),
+  ];
+  List<String> _contextList = [
+    "가장 힘든 일은 첫걸음을 내딛는 것이지만, 출발의 첫걸음은 모든 성취의 시작입니다.",
+    "당신은 꾸준한 러너로, 매일 조그만한 걸음이지만 결코 멈추지 않고 목표를 향해 달려갑니다.",
+    "당신은 달리기 중독자로, 달리는 그 자체가 그에게 끊임없는 도약과 자유의 순간이 되어버렸습니다.",
+    "당신은 슈퍼파워를 가진 듯한 슈퍼러너로, 비범한 체력과 빠른 속도로 경쟁자들을 압도하며 달립니다.",
+    "당신은 이제 러닝의 대가로서, 러너들 사이에서 끊임없는 존경과 영감을 불러일으킵니다.",
+  ];
   List<String> _achieveList2 = [
     "동료들의 힘",
     "응원의 요정",
@@ -111,7 +125,7 @@ class _TrophiesPageState extends State<TrophiesPage> {
             backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: 400,
               child: Column(
                 children: [
                   Container(
@@ -126,25 +140,36 @@ class _TrophiesPageState extends State<TrophiesPage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    child: _contextImgList[idx],
                     width: 200,
-                    height: 300,
-                    color: Colors.grey,
-                    child: Text("IMG"),
+                    height: 200,
                   ),
                   Expanded(
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(
-                          "달리기 ${_runCount} / ${_achCondList[idx]}",
-                          style: TextStyle(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            _contextList[idx],
+                            style: TextStyle(
                               fontFamily: "SCDream",
                               color: Color.fromARGB(255, 34, 40, 49), //black
-                              fontSize: 18,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          child: Text(
+                            "달리기 ${_runCount} / ${_achCondList[idx]}",
+                            style: TextStyle(
+                                fontFamily: "SCDream",
+                                color: Color.fromARGB(255, 34, 40, 49), //black
+                                fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -166,6 +191,7 @@ class _TrophiesPageState extends State<TrophiesPage> {
     return Scaffold(
         appBar: AppBar(
           // 앱 상단 바
+          automaticallyImplyLeading: false,
           elevation: 0,
           iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
           title: const Text(
