@@ -5,6 +5,7 @@ import 'package:dorun_dorun/screens/homeScreens/customizePage.dart';
 import 'package:dorun_dorun/screens/homeScreens/makeRoomPage.dart';
 import 'package:dorun_dorun/screens/loginScreens/splashPage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'utilities/firebase_options.dart';
@@ -17,6 +18,10 @@ import 'Screens/loginScreens/initialPage.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
