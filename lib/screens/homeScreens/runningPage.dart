@@ -38,9 +38,7 @@ class RunningPage extends StatefulWidget {
   State<RunningPage> createState() => _RunningPageState();
 }
 
-/*
-  혼자 뛰는 경우의 RunningPageState 입니다.
-*/
+
 class _RunningPageState extends State<RunningPage> {
   // group 컬렉션 참조
   final CollectionReference _userCollection =
@@ -53,7 +51,7 @@ class _RunningPageState extends State<RunningPage> {
 
   Lock lock = Lock();
 
-  // 이번 러닝 기록을 저장할 document 의 레퍼런스
+  // 이번 러닝 기록을 저장할 Collection 의 레퍼런스
   late final CollectionReference _logReference;
   late final String groupId;
   late final LocationData initialLocation;
@@ -80,22 +78,51 @@ class _RunningPageState extends State<RunningPage> {
   List<Map<int, Object>> pace = List<Map<int, Object>>.empty(growable: true); // 단위 거리를 지난 시간을 기록하자.
 
   //// 모드에 따른 Setting ////////////////////////////
+  /*
+  -1 : 목표 제약 없음
+  0 : 목표 거리 있음
+  1 : 목표 시간 있음
+   */
+  late final int code;
+  bool goalFullCompleted = false;
+  bool goalHalfCompleted = false;
   late final double distanceGoal;
   late final int timeGoal;
+
   void setMode(){
-    if(widget.thisGroup.getGroupMode() == "기본모드"){
-      if(widget.thisGroup.getBasicSetting() == "목표거리"){
-        // TODO
+    debugPrint("세팅은 할게");
+    debugPrint(widget.thisGroup.getGroupMode());
+    if(widget.thisGroup.getGroupMode() == "basic"){
+      debugPrint("basic 까지는 왔어");
+      Map<String, double> goal =  widget.thisGroup.getBasicGoal();
+      debugPrint("$goal");
+      if(widget.thisGroup.getBasicSetting() == "목표 거리"){
+        debugPrint("목표");
+        code = 0;
+        distanceGoal = goal["목표 거리"]!;
       }
-      else if(widget.thisGroup.getBasicSetting() == "목표시간"){
-        // TODO
+      else if(widget.thisGroup.getBasicSetting() == "목표 시간"){
+        code = 1;
+        distanceGoal = goal["목표 시간"]!;
       }
       else{
-      // 스피드
+        code = -1;
       }
     }
+    else if(widget.thisGroup.getGroupMode() == "coop"){
+      code = 0;
+      distanceGoal = widget.thisGroup.getCoopGoal(0);
+    }
+    else if(widget.thisGroup.getGroupMode() == "comp"){
+      if(widget.thisGroup.getCompSetting() == "거리"){
+        code = 0;
+        distanceGoal = widget.thisGroup.getCompGoal()["거리"]!;
+      }
+    }
+    else{
+      code = -1;
+    }
   }
-
   /////////////////////////////////////////////////////
   //// 다른 Group Member 들의 달리기 현황을 저장할 Data ////
   late membersLog _membersLog;
@@ -121,7 +148,6 @@ class _RunningPageState extends State<RunningPage> {
     return timerView.format(dt);
   }
   //////////////////////////////////////////////////////////////////////////////////////
-
   //// Button 관련 /////////////////////////////////////////////////////////////////////
   IconData _runningControlBtn = Icons.pause; // 달리기 시작, 일시정지 버튼
   Color btnColor = Colors.blueGrey;
@@ -166,6 +192,25 @@ class _RunningPageState extends State<RunningPage> {
         .speak("${times.toString()} $unit 지점을 통과하였습니다. 현재 페이스는 $pace 입니다.");
   }
 
+  void ttsExit({
+    required String memberName,
+  }) async{ // 그룹의 멤버가 중도 이탈
+    await tts.speak("$memberName 님이 러닝을 종료하였습니다.");
+  }
+
+  void ttsHalfDistance() async{
+    await tts.speak("운동 목표의 절반에 도달 하셨습니다. 조금만 힘내세욥!");
+  }
+  void ttsComplete() async{
+    await tts.speak("목표를 모두 달성하셨습니다. 축하드립니다!!");
+  }
+
+  void ttsHalfTime() async{
+    await tts.speak("운동 목표 시간의 절반이 경과 되었습니다."
+        "운동을 시작한 지점에서 러닝을 종료하고 싶으시다면 지금 돌아가시면 됩니다!");
+  }
+
+
   void _getTtsMsg(){ //tts 스트림 열기
     final DocumentReference userDocument = _userCollection.doc(widget.userId);
     final CollectionReference ttsCollection =
@@ -196,34 +241,32 @@ class _RunningPageState extends State<RunningPage> {
   void updateMembersLog() async {
     QuerySnapshot<Object?> querySnapshot = await _logReference.orderBy('delta_time', descending: true).get();
 
-
     if(querySnapshot.docs.isNotEmpty && querySnapshot is QuerySnapshot<Map<String, dynamic>>){
       List<DocumentSnapshot<Map<String, dynamic>>> documents = querySnapshot!.docs;
 
       Set<String> processedRunners = {};
-      debugPrint("//////////////호출되었음/////////////////");
       for (DocumentSnapshot<Map<String, dynamic>> document in documents) {
         Map<String, dynamic> data = document.data()!;
         // document에 대한 작업 수행
-        var deltaTime = data['delta_time'];
         var runner = data['runner'];
-        debugPrint("runner : $runner");
-        debugPrint("deltaTime : $deltaTime");
         if(processedRunners.contains(runner)){
-          debugPrint("포함된 runner : $runner");
           continue;
         }
         if(
           deltaTime > _membersLog.getLastTime(runner: runner)
         ){
-          debugPrint("비교하는 곳");
-          debugPrint("비교 후 deltaTime : $deltaTime");
-          _membersLog.addRecentLog(
-            runner: runner as String,
-            deltaTime: deltaTime as num,
-            distanceMoved: data['accumulated_distance'] as num,
-            velocity: data['velocity'] as num,
-          );
+          if(data['accumulated_distance'] as num == -1){
+            ttsExit(memberName: runner);
+            memberSet.remove(runner);
+          }
+          else{
+            _membersLog.addRecentLog(
+              runner: runner as String,
+              deltaTime: deltaTime as num,
+              distanceMoved: data['accumulated_distance'] as num,
+              velocity: data['velocity'] as num,
+            );
+          }
         }
         processedRunners.add(runner);
         var completed = memberSet.difference(processedRunners).isEmpty;
@@ -231,11 +274,65 @@ class _RunningPageState extends State<RunningPage> {
           break;
         }
       }
-      debugPrint(_membersLog.displayRecentLog());
     }
   }
   //////////////////////////////////////////////////////////////////////////////////////
 
+  //////////////////////////////////////////////////////////////////////////////////////
+  ////                                   EXIT                                       ////
+  //////////////////////////////////////////////////////////////////////////////////////
+  void exitRunningPage(int deltaTime) async{
+    // 러닝 중인 사람들에게 나갔음을 알리기 //
+    var exitData = {
+      "runner": widget.userName,
+      "accumulated_distance": -1,
+      "delta_time": deltaTime,
+      "velocity": -1,
+    };
+    _logReference.add(exitData);
+
+    StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
+
+    if(widget.thisGroup.getMembersNum()>1){ //멤버가 2명 이상일 때,
+      if(widget.thisGroup.getAdminId()==widget.userId){ //내가 admin 이면,
+        final nAdminId = widget.thisGroup.getMembersId()[1];
+        final nAdminName = widget.thisGroup.getMembersName()[1];
+        await FirebaseService(
+            uid: widget.userId,
+            gid: widget.thisGroup.getGroupId())
+            .adminExitGroup(widget.userName, nAdminName, nAdminId); //다음(1번) 멤버에게 권한 전달하고 나가기
+      }else{ // 내가 admin 아니면,
+        await FirebaseService(
+            uid: widget.userId,
+            gid: widget.thisGroup.getGroupId())
+            .exitGroup(widget.userName); //그룹 나가기
+      }
+    }else{ //멤버 수가 1명
+      await FirebaseService(
+          uid: widget.userId,
+          gid: widget.thisGroup.getGroupId())
+          .endGroup(); //그룹 삭제
+    }
+    if(goalFullCompleted){
+      await FirebaseService(
+        uid: widget.userId,
+      ).incRunCount(); //달린횟수 증가
+    }
+
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (context) => RunResultPage(
+            pathMoved: pathMoved,
+            snapshots: snapshots,
+            startTime: defaultTime,
+            passedTime: _runningSeconds,
+            distanceMoved: distanceMoved,
+            averagePace : averagePace,
+            pace : pace,
+            goalCompleted : goalFullCompleted,
+        )));
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////
   @override
   void initState() {
     super.initState();
@@ -273,6 +370,9 @@ class _RunningPageState extends State<RunningPage> {
     _membersLog = membersLog(
       memberSet: memberSet,
     );
+    setMode();
+    debugPrint("________________________");
+    debugPrint("code : $code");
     Wakelock.enable();
   }
 
@@ -375,6 +475,33 @@ class _RunningPageState extends State<RunningPage> {
                             timesUnit : deltaTime
                           });
                         }
+                        if(!goalHalfCompleted){
+                          if(code == 1){
+                            if(deltaTime >= timeGoal*30){
+                              ttsHalfTime();
+                            }
+                          }
+                          else if(code == -1){
+                            if(distanceMoved >= distanceGoal*unit1000Int /2){
+                              ttsHalfDistance();
+                            }
+                          }
+                          goalHalfCompleted = true;
+                        }
+                        if(!goalFullCompleted){
+                          if(code == 1){
+                            if(deltaTime >= timeGoal*60){
+                              ttsComplete();
+                            }
+                          }
+                          else if(code == -1){
+                            if(distanceMoved >= distanceGoal*unit1000Int){
+                              ttsComplete();
+                            }
+                          }
+                          goalFullCompleted = true;
+                        }
+
                         // 지난 시간 업데이트
                         deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
                         // 평균 페이스 갱신
@@ -391,7 +518,6 @@ class _RunningPageState extends State<RunningPage> {
                         snapshots.add(newData);
                         // 지나온 경로에 새로운 포인트 추가
                         pathMoved.add(cur);
-                        debugPrint("in if ");
                         debugPrint("distanceDelta : $distanceDelta");
                         debugPrint("isMock: $_isMocked");
                       }
@@ -474,42 +600,116 @@ class _RunningPageState extends State<RunningPage> {
                     child: Icon(_runningControlBtn),
                   ),
                   FloatingActionButton(
-                    onPressed: () async{
-                      StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
-                      if(widget.thisGroup.getMembersNum()>1){ //멤버가 2명 이상일 때,
-                        if(widget.thisGroup.getAdminId()==widget.userId){ //내가 admin 이면,
-                          final nAdminId = widget.thisGroup.getMembersId()[1];
-                          final nAdminName = widget.thisGroup.getMembersName()[1];
-                          await FirebaseService(
-                              uid: widget.userId,
-                              gid: widget.thisGroup.getGroupId())
-                              .adminExitGroup(widget.userName, nAdminName, nAdminId); //다음(1번) 멤버에게 권한 전달하고 나가기
-                        }else{ // 내가 admin 아니면,
-                          await FirebaseService(
-                              uid: widget.userId,
-                              gid: widget.thisGroup.getGroupId())
-                              .exitGroup(widget.userName); //그룹 나가기
-                        }
-                      }else{ //멤버 수가 1명
-                        await FirebaseService(
-                            uid: widget.userId,
-                            gid: widget.thisGroup.getGroupId())
-                            .endGroup(); //그룹 삭제
+                    onPressed: () {
+                      if(code == -1){
+                        exitRunningPage(deltaTime * 100 + 100);
                       }
-                      await FirebaseService(
-                          uid: widget.userId,
-                          ).incRunCount(); //달린횟수 증가
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => RunResultPage(
-                              pathMoved: pathMoved,
-                              snapshots: snapshots,
-                              startTime: defaultTime,
-                              passedTime: _runningSeconds,
-                              distanceMoved: distanceMoved,
-                              averagePace : averagePace,
-                              pace : pace
-                          )));
+                      else{
+                        if(!goalFullCompleted){
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context){
+                                return AlertDialog(
+                                  contentPadding: const EdgeInsets.only(top: 0),
+                                  backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
+                                  content: SizedBox(
+                                    width: MediaQuery.of(context).size.width * 0.8,
+                                    height: 130,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const SizedBox(height : 5),
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              if(code == 0)
+                                                const Text(
+                                                  "목표 거리를 달리지 않았습니다",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontFamily: "SCDream",
+                                                    color: Color.fromARGB(255, 34, 40, 49), //black
+                                                    fontSize: 20,
+                                                  ),
+                                                )
+                                              else if(code == 1)
+                                                const Text(
+                                                  "목표 시간을 달리지 않았습니다",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontFamily: "SCDream",
+                                                    color: Color.fromARGB(255, 34, 40, 49), //black
+                                                    fontSize: 20,
+                                                  ),
+                                                ),
+                                              const Text(
+                                                  "그만하시겠습니까?",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                  fontFamily: "SCDream",
+                                                  color: Color.fromARGB(255, 34, 40, 49), //black
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                              child : ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
+                                                  backgroundColor: Colors.grey, //teal
+                                                  elevation: 0,
+                                                ),
+                                                onPressed : (){
+                                                  Navigator.of(context).pop();
+                                                  exitRunningPage(deltaTime * 100 + 100);
+                                                },
+                                                child : const Text("종료",
+                                                  style: TextStyle(
+                                                    fontFamily: "SCDream",
+                                                    color: Color.fromARGB(255, 238, 238, 238), //white
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              )
+                                          ),
+                                          const SizedBox(width: 5,),
+                                          SizedBox(
+                                            child : ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
+                                                backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                                                elevation: 0,
+                                              ),
+                                              onPressed : (){
+                                                Navigator.of(context).pop();
+                                              },
+                                              child : const Text("이어서 달리기",
+                                                style: TextStyle(
+                                                  fontFamily: "SCDream",
+                                                  color: Color.fromARGB(255, 238, 238, 238), //white
+                                                  fontSize: 12,
+                                                  ),
+                                                ),
+                                            )
+                                          ),
+                                        ],
+                                        ),
+                                      ]
+                                    )
 
+                                  )
+                                );
+                              }
+                          );
+                        }
+                        else{
+                          exitRunningPage(deltaTime * 100 + 100);
+                        }
+                      }
                     },
                     heroTag: 'stop running',
                     backgroundColor: Colors.blueGrey,

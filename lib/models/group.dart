@@ -13,15 +13,15 @@ class Group{
   List<String> _membersId = [];
   List<String> _membersName = [];
 
-  String _groupMode = ""; //기본모드, 협동모드, 경쟁모드
+  String _groupMode = ""; //기본모드 basic, 협동모드 coop, 경쟁모드 comp
 
   String _basicSetting = ""; //기본모드 -> 목표거리, 목표시간, 스피드
-  Map<String, double> _basicGoal = {"거리":5.0, "시간":30}; // -> 목표거리, 목표시간
+  Map<String, double> _basicGoal = {"목표 거리":5.0, "목표 시간":30}; // -> 목표거리, 목표시간
 
   String _coopSetting = "";
 
   String _compSetting = "";
-  Map<String, double> _compGoal = {"거리":5.0, "페이스":10};
+  Map<String, double> _compGoal = {"목표 거리":5.0, "최저 페이스":10};
 
   Map<String, String> _membersAvatar = {};
   Map<String, bool> _membersReady = {};
@@ -146,6 +146,8 @@ class Group{
   }
   double getCoopGoal(int opt){
     switch(_coopSetting){
+      // 0 -> 거리 / 1-> 속도
+      // 거리:페이스
       case "1단계":
         return (opt==0)?10:15;
       case "2단계":

@@ -14,6 +14,7 @@ class RunResultPage extends StatefulWidget {
   final double distanceMoved; // 총 움직인 거리
   final int averagePace;
   final List<dynamic> pace;
+  final bool goalCompleted;
 
   const RunResultPage({
     super.key,
@@ -24,6 +25,7 @@ class RunResultPage extends StatefulWidget {
     required this.distanceMoved,
     required this.averagePace,
     required this. pace,
+    required this.goalCompleted,
   });
 
   @override
