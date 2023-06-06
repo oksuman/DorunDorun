@@ -90,15 +90,17 @@ class _FriendsPageState extends State<FriendsPage> {
         // 앱 상단 바
         elevation: 0,
         automaticallyImplyLeading: false,
-        iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
+        iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
         title: const Text(
           "친구 관리",
           style: TextStyle(
               fontFamily: "SCDream",
-              color: Color.fromARGB(255, 238, 238, 238), //white
+              color: Color.fromARGB(255, 34, 40, 49),
               fontSize: 20,
               fontWeight: FontWeight.bold),
         ),
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
+        centerTitle: true,
         actions: [
           IconButton(
               onPressed: () {
@@ -106,8 +108,6 @@ class _FriendsPageState extends State<FriendsPage> {
               },
               icon: Icon(Icons.person_add_alt_1_sharp))
         ],
-        backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
-        centerTitle: true,
       ),
       backgroundColor: Color.fromARGB(255, 238, 238, 238),
       body: Center(

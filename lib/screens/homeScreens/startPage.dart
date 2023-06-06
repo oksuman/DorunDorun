@@ -96,8 +96,21 @@ class _StartPageState extends State<StartPage> {
   Widget build(BuildContext context) {
     _getMyData();
     return Scaffold(
-      backgroundColor: Colors.white,
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
+      appBar: AppBar( //앱 상단 바
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
+        title: const Text(
+          "마이룸",
+          style: TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49),
+              fontSize: 20,
+              fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
+        centerTitle: true,
+      ),
       drawer: Drawer(
         child: ListView(
           children: [
@@ -175,7 +188,7 @@ class _StartPageState extends State<StartPage> {
                 ),
               ),
               onTap: () {
-                Navigator.pushNamed(context, "/toSettingPage"); //세팅 페이지
+
               },
               trailing: const Icon(Icons.navigate_next),
             ),
@@ -203,29 +216,11 @@ class _StartPageState extends State<StartPage> {
           ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-      floatingActionButton: Builder(builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 20),
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(40),
-              color: const Color.fromARGB(255, 0, 173, 181), //teal
-            ),
-            child: IconButton(
-                color: const Color.fromARGB(255, 238, 238, 238), //white
-                icon: const Icon(Icons.menu_sharp),
-                onPressed: () => Scaffold.of(context).openDrawer()),
-          ),
-        );
-      }),
       body: Stack(
         children: [
           Container(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
+              height: 500,
               color: Colors.grey,
               child: const Text("아바타창") //내 아바타 들어갈 위치
               ),
@@ -233,13 +228,16 @@ class _StartPageState extends State<StartPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Container(
-                height: 150,
-                color: Colors.transparent,
+                height: MediaQuery.of(context).size.height-690,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.5),
+                ),
                 child: Center(
                   child: Container(
-                    width: 180,
-                    height: 80,
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
+                      border: Border.all(width: 20, color: (_ugroup == "")?Colors.teal:Colors.blue),
                       borderRadius: BorderRadius.circular(50),
                       color: (_ugroup == "")
                           ? const Color.fromARGB(255, 0, 173, 181)
@@ -248,7 +246,7 @@ class _StartPageState extends State<StartPage> {
                     child: IconButton(
                       //달리기 버튼
                       icon: const Icon(Icons.directions_run_sharp),
-                      iconSize: (60),
+                      iconSize: (40),
                       color: const Color.fromARGB(255, 238, 238, 238), //white
                       onPressed: () async {
                         Navigator.pushNamed(context, "/toMakeRoomPage",

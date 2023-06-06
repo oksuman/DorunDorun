@@ -16,25 +16,38 @@ class InitialPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Padding( //앱 제목
-                    padding: EdgeInsets.only(top: 40, bottom: 40),
+                    padding: EdgeInsets.only(bottom: 20),
                     child: Text(
                       "두런두런",
                       style: TextStyle(
                           fontFamily: "SCDream",
                           color: Color.fromARGB(255, 238, 238, 238), //white
                           fontWeight: FontWeight.w900,
-                          fontSize: 40),
+                          fontSize: 60),
+                    )),
+                Container(
+                  child: Image.asset("assets/images/run_title.png"),
+                ),
+                const Padding( //앱 제목
+                    padding: EdgeInsets.only(top:20, bottom: 100),
+                    child: Text(
+                      "다른 공간에서도 함께 즐기는 러닝",
+                      style: TextStyle(
+                          fontFamily: "SCDream",
+                          color: Color.fromARGB(255, 238, 238, 238), //white
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20),
                     )),
                 Padding(
-                  padding: const EdgeInsets.only(top: 40, left: 40, right: 40),
+                  padding: const EdgeInsets.only(left: 40, right: 40),
                   child: Column(
                     children: [
                       ElevatedButton( //이메일로 로그인하기 버튼
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
+                            backgroundColor: Colors.teal,
                             elevation: 0,
                           ),
                           onPressed: () {
@@ -47,8 +60,8 @@ class InitialPage extends StatelessWidget {
                                 "이메일로 로그인",
                                 style: TextStyle(
                                   fontFamily: "SCDream",
-                                  color: Color.fromARGB(255, 34, 40, 49), //black
-                                  fontSize: 14,
+                                  color: Color.fromARGB(255, 238, 238, 238),
+                                  fontSize: 16,
                                 ),
                               ),
                             ],
@@ -56,7 +69,7 @@ class InitialPage extends StatelessWidget {
                       ElevatedButton( //계정 생성하기 버튼
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             backgroundColor: Color.fromARGB(255, 238, 238, 238),
                             elevation: 0,
@@ -73,7 +86,7 @@ class InitialPage extends StatelessWidget {
                                 style: TextStyle(
                                   fontFamily: "SCDream",
                                   color: Color.fromARGB(255, 34, 40, 49), //black
-                                  fontSize: 14,
+                                  fontSize: 16,
                                 ),
                               ),
                             ],

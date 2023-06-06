@@ -158,16 +158,16 @@ class _FindFriendPageState extends State<FindFriendPage> {
         appBar: AppBar(
           // 앱 상단 바
           elevation: 0,
-          iconTheme: IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
+          iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
           title: const Text(
             "친구 추가",
             style: TextStyle(
                 fontFamily: "SCDream",
-                color: Color.fromARGB(255, 238, 238, 238), //white
+                color: Color.fromARGB(255, 34, 40, 49),
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: Color.fromARGB(255, 0, 173, 181), //teal
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           centerTitle: true,
         ),
         backgroundColor: Color.fromARGB(255, 238, 238, 238), //white
@@ -178,6 +178,9 @@ class _FindFriendPageState extends State<FindFriendPage> {
                 padding: const EdgeInsets.all(10),
                 child: Form(
                   child: TextFormField(
+                    style: TextStyle(
+                      fontSize: 12
+                    ),
                     decoration: const InputDecoration(
                       fillColor: Colors.white,
                       filled: true,
@@ -192,6 +195,7 @@ class _FindFriendPageState extends State<FindFriendPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(5)),
                       ),
+
                     ),
                     onTap: () {
                       setState(() {

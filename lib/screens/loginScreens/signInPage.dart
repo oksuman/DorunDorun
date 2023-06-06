@@ -60,16 +60,16 @@ class _SignInPageState extends State<SignInPage> {
       child: Scaffold(
         appBar: AppBar( // 앱 상단 바
           elevation: 0,
-          iconTheme: const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)), //white
+          iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)), //black
           title: const Text(
             "이메일 로그인",
             style: TextStyle(
                 fontFamily: "SCDream",
-                color: Color.fromARGB(255, 238, 238, 238), //white
+                color: Color.fromARGB(255, 34, 40, 49),
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           centerTitle: true,
         ),
         backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
@@ -175,7 +175,7 @@ class _SignInPageState extends State<SignInPage> {
                             style: TextStyle(
                               color: Color.fromARGB(255, 238, 238, 238), //white
                               fontFamily: "SCDream",
-                              fontSize: 14,
+                              fontSize: 16,
                             ),
                           ),
                         ],

@@ -272,16 +272,16 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
       appBar: AppBar(
         // 앱 상단 바
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),//white
+        iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),//black
         title: const Text(
-          "러닝 방 생성",
+          "로비",
           style: TextStyle(
               fontFamily: "SCDream",
-              color: Color.fromARGB(255, 238, 238, 238), //white
+              color: Color.fromARGB(255, 34, 40, 49),
               fontSize: 20,
               fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238),
         centerTitle: true,
         actions: [
           //방 나가기 버튼
@@ -320,15 +320,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Container( //아바타 창
-                color: Colors.black,
-                width: MediaQuery.of(context).size.width,
-                height: 200,
-                child: const Text("아바타 창"),
-              ),
-              Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey,),
-              _playerStatusField(), //유저 접속 목록(밑에 있음)
-              Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey,),
+              _modeImg(_thisGroup.getGroupMode()),
               Row( //기본모드, 협동모드, 경쟁모드 설정 창
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -432,7 +424,10 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
                   )
                 ],
               ),
-              Container(width: MediaQuery.of(context).size.width, height: 1, color: Colors.grey,),
+              Container(width: MediaQuery.of(context).size.width, height: 1, color: Colors.grey.withOpacity(0.5)),
+              Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey.withOpacity(0.5)),
+              _playerStatusField(), //유저 접속 목록(밑에 있음)
+              Container(width: MediaQuery.of(context).size.width, height: 5, color: Colors.grey.withOpacity(0.5)),
               _modeOptionWidget(), //러닝 설정 창(밑에 있음)
               Container(
                 width: MediaQuery.of(context).size.width,
@@ -533,7 +528,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     return (_isAdmin)? //내가 admin이면,
     Container(
       padding: const EdgeInsets.all(5),
-      color: (isMe)?Colors.lightBlueAccent:Colors.grey, //나면 파랑, 아니면 초록
+      color: (isMe)?Colors.lightBlueAccent:Colors.grey.withOpacity(0.5), //나면 파랑, 아니면 초록
       width: MediaQuery.of(context).size.width / 2,
       height: 50,
       child: Row(
@@ -649,7 +644,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   Widget _validStatusContainer() {
     return Container(
       padding: const EdgeInsets.all(5),
-      color: Colors.grey,
+      color: Colors.grey.withOpacity(0.5),
       width: MediaQuery.of(context).size.width / 2,
       height: 50,
       child: Row(
@@ -793,10 +788,41 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   //모드 설정 창
+  Widget _modeImg(String mode){
+    if(mode == "basic"){
+      return Container(
+        color: Colors.black,
+        child: Image.asset("assets/images/basic.png"),
+        width: MediaQuery.of(context).size.width,
+        height: 195,
+      );
+    }else if(mode == "coop"){
+      return Container(
+        color: Colors.black,
+        child: Image.asset("assets/images/coop.png"),
+        width: MediaQuery.of(context).size.width,
+        height: 195,
+      );
+    }else if (mode == "comp"){
+      return Container(
+        color: Colors.black,
+        child: Image.asset("assets/images/comp.png"),
+        width: MediaQuery.of(context).size.width,
+        height: 195,
+      );
+    }else{
+      return Container(
+        child: Center(child: CircularProgressIndicator()),
+        width: MediaQuery.of(context).size.width,
+        height: 200,
+      );
+    }
+
+  }
   Widget _modeOptionWidget() {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height-511, //321+56+24=431 +80
+        height: 280, //321+56+24=431 +80
         child: (_thisGroup.getGroupMode() == "basic")?
         _basicModeWidget():(_thisGroup.getGroupMode() == "coop")?
         _coopModeWidget():(_thisGroup.getGroupMode() == "comp")?
