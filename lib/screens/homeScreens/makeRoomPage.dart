@@ -586,7 +586,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     ): //내가 admin이 아니면,
     Container(
       padding: const EdgeInsets.all(5),
-      color: (isMe)?Colors.lightBlueAccent:Colors.grey, //나면 파랑, 아니면 초록
+      color: (isMe)?Colors.lightBlueAccent:Colors.grey.withOpacity(0.5), //나면 파랑, 아니면 초록
       width: MediaQuery.of(context).size.width / 2,
       height: 50,
       child: Row(
