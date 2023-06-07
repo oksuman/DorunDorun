@@ -197,48 +197,45 @@ class _StartPageState extends State<StartPage> {
           ],
         ),
       ),
-      body: Stack(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
               width: MediaQuery.of(context).size.width,
               height: 500,
               color: Colors.grey,
               child: const Text("아바타창") //내 아바타 들어갈 위치
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.5),
               ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                height: MediaQuery.of(context).size.height-690,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.5),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 20, color: (_ugroup == "")?Colors.teal:Colors.blue),
-                      borderRadius: BorderRadius.circular(50),
-                      color: (_ugroup == "")
-                          ? const Color.fromARGB(255, 0, 173, 181)
-                          : Colors.lightBlueAccent, //teal
-                    ),
-                    child: IconButton(
-                      //달리기 버튼
-                      icon: const Icon(Icons.directions_run_sharp),
-                      iconSize: (40),
-                      color: const Color.fromARGB(255, 238, 238, 238), //white
-                      onPressed: () async {
-                        Navigator.pushNamed(context, "/toMakeRoomPage",
-                            arguments: ""); //메이크 룸 이동
-                      },
-                    ),
+              child: Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 20, color: (_ugroup == "")?Colors.teal:Colors.blue),
+                    borderRadius: BorderRadius.circular(50),
+                    color: (_ugroup == "")
+                        ? const Color.fromARGB(255, 0, 173, 181)
+                        : Colors.lightBlueAccent, //teal
+                  ),
+                  child: IconButton(
+                    //달리기 버튼
+                    icon: const Icon(Icons.directions_run_sharp),
+                    iconSize: (40),
+                    color: const Color.fromARGB(255, 238, 238, 238), //white
+                    onPressed: () async {
+                      Navigator.pushNamed(context, "/toMakeRoomPage",
+                          arguments: ""); //메이크 룸 이동
+                    },
                   ),
                 ),
               ),
-            ],
-          )
+            ),
+          ),
         ],
       ),
     );

@@ -276,7 +276,7 @@ class _RunResultPageState extends State<RunResultPage> {
                     Navigator.popAndPushNamed(context, "/toNavigationBarPage");
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey,
+                    backgroundColor: Colors.grey,
                   ),
                   child: const Text(
                     '기록 삭제하기',

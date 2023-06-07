@@ -153,14 +153,14 @@ class _RunningPageState extends State<RunningPage> {
   //////////////////////////////////////////////////////////////////////////////////////
   //// Button 관련 /////////////////////////////////////////////////////////////////////
   IconData _runningControlBtn = Icons.pause; // 달리기 시작, 일시정지 버튼
-  Color btnColor = Colors.blueGrey;
+  Color btnColor = Colors.grey;
   bool _isRunning = true; // 일시정지 중이라면 false : 사용자가 타이머 버튼을 조작함으로서 변경됨
   bool _isMocked = false; // 일시정지 중이라면 true : GPS 데이터가 오랜기간 정지해있는지 여부
   void btnClicked() {
     _isRunning = !_isRunning;
     if (_isRunning) {
       _runningControlBtn = Icons.pause;
-      btnColor = Colors.blueGrey;
+      btnColor = Colors.grey;
       _startTimer();
     } else {
       _runningControlBtn = Icons.play_arrow;
@@ -415,40 +415,40 @@ class _RunningPageState extends State<RunningPage> {
       await _speakTtsMsg(); //tts speak -> synchronize 시킴
     });
     return Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+        ),
+        extendBodyBehindAppBar: true,
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Container(
-                width: double.infinity,
+                width: MediaQuery.of(context).size.width,
                 height: 50,
-                color: const Color.fromARGB(255, 0, 173, 181),
+                color: const Color.fromARGB(255, 238, 238, 238), //white
               ),
               /*
              Timer : 운동 시작 후 경과된 시간을 표시하기 위한 용도로
              gps timestamp, firebase 서버시간과는 독립적인 시간
              */
               Container(
-                width: double.infinity,
-                color: const Color.fromARGB(255, 0, 173, 181),
+                width: MediaQuery.of(context).size.width,
+                height: 50,
+                color: const Color.fromARGB(255, 238, 238, 238), //white
                 child: Text(
                   _timerFormatting(_runningSeconds),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontFamily: "SCDream",
-                      color: Color.fromARGB(255, 238, 238, 238), //white
+                      color: Color.fromARGB(255, 34, 40, 49),
                       fontWeight: FontWeight.bold,
                       fontSize: 30
                   ),
                 ),
-              ),
-              Container(
-                width: double.infinity,
-                height: 20,
-                color: const Color.fromARGB(255, 0, 173, 181),
-              ),
-              const SizedBox(
-                height: 20,
               ),
               /*
                 움직인 거리, 평균 페이스 표시 화면
@@ -553,43 +553,44 @@ class _RunningPageState extends State<RunningPage> {
                     }
                     return Center(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Text(
-                                "움직인 거리 : ${(distanceMoved/unit1000Int).toStringAsFixed(2)} km",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontFamily: "SCDream",
-                                  color: Color.fromARGB(255, 34, 40, 49), //black
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 50,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  "이동 거리 : ${(distanceMoved/unit1000Int).toStringAsFixed(2)} km",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: "SCDream",
+                                    color: Color.fromARGB(255, 34, 40, 49), //black
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                "평균 페이스 : ${TimeFormatting.timeWriteFormatting(
-                                  timeInSecond : averagePace,
-                                )}",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontFamily: "SCDream",
-                                  color: Color.fromARGB(255, 34, 40, 49), //black
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                                Text(
+                                  "평균 페이스 : ${TimeFormatting.timeWriteFormatting(
+                                    timeInSecond : averagePace,
+                                  )}",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: "SCDream",
+                                    color: Color.fromARGB(255, 34, 40, 49), //black
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           /*
                           gps 데이터를 stream 으로 받아와 화면을 주기적으로 update
                           현재는 임시로 화면을 구축해둔 상태
                           TODO : unity 화면으로 gps 데이터를 표현
                           */
-                          const SizedBox(
-                            height: 25,
-                          ),
                           Container(
                             color: Colors.grey,
                             width: MediaQuery.of(context).size.width,
@@ -610,140 +611,144 @@ class _RunningPageState extends State<RunningPage> {
                       ),
                     );
                   }),
-
-              const SizedBox(
-                height: 25,
-              ),
               // 운동 시작, 운동 종료 버튼들
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  FloatingActionButton(
-                    onPressed: () => setState(() {
-                      btnClicked();
-                    }),
-                    heroTag: 'pause/restart running',
-                    backgroundColor: btnColor,
-                    child: Icon(_runningControlBtn),
-                  ),
-                  FloatingActionButton(
-                    onPressed: () {
-                      if(code == -1){
-                        exitRunningPage(deltaTime * 100 + 100);
-                      }
-                      else{
-                        if(!goalFullCompleted){
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context){
-                                return AlertDialog(
-                                  title: const Text("운동을 그만두시게요?"),
-                                  contentPadding: const EdgeInsets.only(top: 0),
-                                  backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
-                                  content: SizedBox(
-                                    width: MediaQuery.of(context).size.width * 0.8,
-                                    height: 130,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const SizedBox(height : 5),
-                                          Column(
+              Expanded(
+                child:
+                Container(
+                  color: Colors.grey.withOpacity(0.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      FloatingActionButton(
+                        elevation: 0,
+                        onPressed: () => setState(() {
+                          btnClicked();
+                        }),
+                        heroTag: 'pause/restart running',
+                        backgroundColor: btnColor,
+                        child: Icon(_runningControlBtn),
+                      ),
+                      FloatingActionButton(
+                        elevation: 0,
+                        onPressed: () {
+                          if(code == -1){
+                            exitRunningPage(deltaTime * 100 + 100);
+                          }
+                          else{
+                            if(!goalFullCompleted){
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context){
+                                    return AlertDialog(
+                                      title: const Text("운동을 그만두시게요?"),
+                                      contentPadding: const EdgeInsets.only(top: 0),
+                                      backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
+                                      content: SizedBox(
+                                        width: MediaQuery.of(context).size.width * 0.8,
+                                        height: 130,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const SizedBox(height : 5),
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  if(code == 0)
+                                                    const Text(
+                                                      "목표 거리를 달리지 않았습니다",
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(
+                                                        fontFamily: "SCDream",
+                                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                                        fontSize: 17,
+                                                      ),
+                                                    )
+                                                  else if(code == 1)
+                                                    const Text(
+                                                      "목표 시간을 달리지 않았습니다",
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(
+                                                        fontFamily: "SCDream",
+                                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                  const Text(
+                                                      "그만하시겠습니까?",
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(
+                                                      fontFamily: "SCDream",
+                                                      color: Color.fromARGB(255, 34, 40, 49), //black
+                                                      fontSize: 17,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              if(code == 0)
-                                                const Text(
-                                                  "목표 거리를 달리지 않았습니다",
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontFamily: "SCDream",
-                                                    color: Color.fromARGB(255, 34, 40, 49), //black
-                                                    fontSize: 17,
+                                              SizedBox(
+                                                  child : ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
+                                                      backgroundColor: Colors.grey, //teal
+                                                      elevation: 0,
+                                                    ),
+                                                    onPressed : (){
+                                                      Navigator.of(context).pop();
+                                                      exitRunningPage(deltaTime * 100 + 100);
+                                                    },
+                                                    child : const Text("종료",
+                                                      style: TextStyle(
+                                                        fontFamily: "SCDream",
+                                                        color: Color.fromARGB(255, 238, 238, 238), //white
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  )
+                                              ),
+                                              const SizedBox(width: 5,),
+                                              SizedBox(
+                                                child : ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
+                                                    backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                                                    elevation: 0,
                                                   ),
+                                                  onPressed : (){
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child : const Text("계속",
+                                                    style: TextStyle(
+                                                      fontFamily: "SCDream",
+                                                      color: Color.fromARGB(255, 238, 238, 238), //white
+                                                      fontSize: 12,
+                                                      ),
+                                                    ),
                                                 )
-                                              else if(code == 1)
-                                                const Text(
-                                                  "목표 시간을 달리지 않았습니다",
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontFamily: "SCDream",
-                                                    color: Color.fromARGB(255, 34, 40, 49), //black
-                                                    fontSize: 17,
-                                                  ),
-                                                ),
-                                              const Text(
-                                                  "그만하시겠습니까?",
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                  fontFamily: "SCDream",
-                                                  color: Color.fromARGB(255, 34, 40, 49), //black
-                                                  fontSize: 17,
-                                                ),
                                               ),
                                             ],
-                                          ),
-                                        Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                              child : ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
-                                                  backgroundColor: Colors.grey, //teal
-                                                  elevation: 0,
-                                                ),
-                                                onPressed : (){
-                                                  Navigator.of(context).pop();
-                                                  exitRunningPage(deltaTime * 100 + 100);
-                                                },
-                                                child : const Text("종료",
-                                                  style: TextStyle(
-                                                    fontFamily: "SCDream",
-                                                    color: Color.fromARGB(255, 238, 238, 238), //white
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              )
-                                          ),
-                                          const SizedBox(width: 5,),
-                                          SizedBox(
-                                            child : ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
-                                                backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
-                                                elevation: 0,
-                                              ),
-                                              onPressed : (){
-                                                Navigator.of(context).pop();
-                                              },
-                                              child : const Text("계속",
-                                                style: TextStyle(
-                                                  fontFamily: "SCDream",
-                                                  color: Color.fromARGB(255, 238, 238, 238), //white
-                                                  fontSize: 12,
-                                                  ),
-                                                ),
-                                            )
-                                          ),
-                                        ],
-                                        ),
-                                      ]
-                                    )
+                                            ),
+                                          ]
+                                        )
 
-                                  )
-                                );
-                              }
-                          );
-                        }
-                        else{
-                          exitRunningPage(deltaTime * 100 + 100);
-                        }
-                      }
-                    },
-                    heroTag: 'stop running',
-                    backgroundColor: Colors.blueGrey,
-                    child: const Text("Exit"),
+                                      )
+                                    );
+                                  }
+                              );
+                            }
+                            else{
+                              exitRunningPage(deltaTime * 100 + 100);
+                            }
+                          }
+                        },
+                        heroTag: 'stop running',
+                        backgroundColor: Colors.grey,
+                        child: const Text("Exit"),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               )
             ],
           ),
