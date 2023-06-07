@@ -100,15 +100,15 @@ class membersLog{
     String debugString = '';
     for(var member in members){
       var snapshot = member.getLastSnapshot();
-      debugString += snapshot['runner'].toString();
-      debugString += '-시간 : ';
-      debugString += snapshot['delta_time'].toString();
-      debugString += '-이동거리 : ';
-
-      debugPrint(" 여기는 display 입니다 ");
-      debugPrint(" 시간 : ${snapshot['delta_time'].toString()}");
-      debugString += snapshot['accumulated_distance'].toString();
-      debugString += '\n';
+      // debugString += snapshot['runner'].toString();
+      // debugString += '-시간 : ';
+      // debugString += snapshot['delta_time'].toString();
+      // debugString += '-이동거리 : ';
+      //
+      // debugPrint(" 여기는 display 입니다 ");
+      // debugPrint(" 시간 : ${snapshot['delta_time'].toString()}");
+      // debugString += snapshot['accumulated_distance'].toString();
+      // debugString += '\n';
     }
     return debugString;
   }

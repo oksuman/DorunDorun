@@ -48,24 +48,21 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          // 앱 상단 바
+        appBar: AppBar( //앱 상단 바
           elevation: 0,
-          iconTheme:
-              const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
-          //white
+          iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
           title: const Text(
-            "상세",
+            "상세 보기",
             style: TextStyle(
                 fontFamily: "SCDream",
-                color: Color.fromARGB(255, 238, 238, 238), //white
+                color: Color.fromARGB(255, 34, 40, 49),
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: const Color.fromARGB(255, 0, 173, 181),
-          //teal
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           centerTitle: true,
         ),
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238), 
 
         body: ListView(
                 padding: const EdgeInsets.all(8),
@@ -84,12 +81,13 @@ class _DetailPageState extends State<DetailPage> {
                   const SizedBox(height: 10),
                   if (widget.pathMoved != null)
                     Container(
-                      margin: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                           border: Border.all(
-                            color: Colors.greenAccent,
-                            width: 8.0,
+                            color: const Color.fromARGB(255, 238, 238, 238),
+                            width: 4.0,
                           )),
+                      width: double.infinity,
                       height: 400,
                       alignment: Alignment.centerLeft,
                       child: FlutterMap(
@@ -97,6 +95,7 @@ class _DetailPageState extends State<DetailPage> {
                           center: LatLngFormatting.toLatLng(
                               widget.pathMoved!)[widget.pathMoved!.length ~/ 2],
                           minZoom: 13,
+                          maxZoom:  18,
                           zoom: 15,
                           maxBounds: LatLngBounds(LatLng(30, 120), LatLng(40, 140)),
                         ),
@@ -111,11 +110,11 @@ class _DetailPageState extends State<DetailPage> {
                             polylines: [
                               Polyline(
                                 points: LatLngFormatting.toLatLng(widget.pathMoved!),
-                                color: Colors.greenAccent,
-                                borderColor: Colors.greenAccent,
+                                color: const Color.fromARGB(255, 0, 173, 181),
+                                borderColor: const Color.fromARGB(255, 0, 173, 181),
                                 strokeWidth: 8,
                                 borderStrokeWidth: 5,
-                                isDotted: true,
+                                isDotted: false,
                                 // 속력에 따라 색깔 gradientColors 를 조정가능
                               ),
                             ],
@@ -123,7 +122,7 @@ class _DetailPageState extends State<DetailPage> {
                         ],
                       ),
                     ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   Text(
                     "달린 거리 : ${widget.distanceMoved} km",
                     textAlign: TextAlign.center,
@@ -131,7 +130,7 @@ class _DetailPageState extends State<DetailPage> {
                       fontFamily: "SCDream",
                       color: Color.fromARGB(255, 34, 40, 49), //black
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -142,7 +141,7 @@ class _DetailPageState extends State<DetailPage> {
                       fontFamily: "SCDream",
                       color: Color.fromARGB(255, 34, 40, 49), //black
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -153,10 +152,10 @@ class _DetailPageState extends State<DetailPage> {
                       fontFamily: "SCDream",
                       color: Color.fromARGB(255, 34, 40, 49), //black
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 25),
                   StreamBuilder(
                       stream: _userReference
                           .doc(currentUser.currentUser!.uid)
@@ -174,49 +173,64 @@ class _DetailPageState extends State<DetailPage> {
                                   itemCount: subLogs.data!.docs.length,
                                   itemBuilder: (BuildContext context, int index){
                                     return Container(
-                                      height: 25,
+                                      height: 80,
                                       width:  double.infinity,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.grey,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
                                       child: ListView(
                                         scrollDirection: Axis.horizontal,
                                         children: [
-                                          Text(
-                                              subLogs.data!.docs[index]['runner'],
-                                              style: const TextStyle(
-                                                  fontFamily: "SCDream",
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                  fontSize: 20
-                                              )
+                                          const SizedBox(width: 10,),
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                    subLogs.data!.docs[index]['runner'],
+                                                    style: const TextStyle(
+                                                        fontFamily: "SCDream",
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Color.fromARGB(255, 0, 173, 181),
+                                                        fontSize: 20
+                                                    )
+                                                ),
+                                              ]
                                           ),
-                                          const SizedBox(
-                                            width: 20,
-                                          ),
-                                          Text(
-                                              subLogs.data!.docs[index]['average_pace'],
-                                              style: const TextStyle(
-                                                  fontFamily: "SCDream",
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                  fontSize: 20,
-                                              )
-                                          ),
-                                          const SizedBox(
-                                            width: 20,
-                                          ),
-                                          Text(
-                                              "${(subLogs.data!.docs[index]['total_distance']  / unit1000Int).toStringAsFixed(2) } km",
-                                              style: const TextStyle(
-                                                  fontFamily: "SCDream",
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                  fontSize: 20
-                                              )
-                                          ),
+                                          const SizedBox(width: 80,),
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const SizedBox(
+                                                height: 10,
+                                              ),
+                                              if(subLogs.data!.docs[index]['wall'] != null)
+                                                Text(
+                                                    "${subLogs.data!.docs[index]['wall']}",
+                                                    style: const TextStyle(
+                                                        fontFamily: "SCDream",
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.black,
+                                                        fontSize: 15
+                                                    )
+                                                ),
+                                              if(subLogs.data!.docs[index]['wall'] != null)
+                                                const SizedBox(
+                                                  height: 10,
+                                                ),
+                                              Text(
+                                                  "${(subLogs.data!.docs[index]['total_distance']  / unit1000Int).toStringAsFixed(2) } km 뛰고 갑니다",
+                                                  style: const TextStyle(
+                                                      fontFamily: "SCDream",
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.black,
+                                                      fontSize: 15
+                                                  )
+                                              ),
+                                            ],
+                                          )
                                         ],
-                                      ),
+                                      )
                                     );
                                   },
                                 separatorBuilder: (BuildContext context, int index) =>
@@ -225,46 +239,49 @@ class _DetailPageState extends State<DetailPage> {
                           );
                         }
                         else{
-                          debugPrint("rlatmdgn");
                           return const Center(child: CircularProgressIndicator());
                         }
                       }
                   ),
-                  const SizedBox(height: 50),
-                  Container(
-                    color: Colors.grey,
-                    width: MediaQuery.of(context).size.width,
-                    height: 50,
-                    child: const Text("km 별 시간대 구현 예정"),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await location.getLocation().then((res) {
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (context) => GhostRunPage(
-                              logPace : widget.pace,
-                              snapshots: widget.snapshots,
-                              averagePace: widget.averagePace,
-                              distanceMoved:  widget.distanceMoved,
-                              docID: widget.docID,
-                              initialLocation: res,
-                            )));
-                      });
+                  const SizedBox(height : 20),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width : 200,
+                        child : TextButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                          ),
+                          onPressed: () async {
+                            await location.getLocation().then((res) {
+                              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                                  builder: (context) => GhostRunPage(
+                                    logPace : widget.pace,
+                                    snapshots: widget.snapshots,
+                                    averagePace: widget.averagePace,
+                                    distanceMoved:  widget.distanceMoved,
+                                    docID: widget.docID,
+                                    initialLocation: res,
+                                  )));
+                            });
+                          },
+                          child: const Text(
+                            '기록과 함께 달리기',
+                            style: TextStyle(
+                                fontFamily: "SCDream",
+                                color: Color.fromARGB(255, 238, 238, 238), //white
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
 
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 0, 173, 181),
-                    ),
-                    child: const Text(
-                      '기록과 함께 달리기',
-                      style: TextStyle(
-                          fontFamily: "SCDream",
-                          color: Color.fromARGB(255, 238, 238, 238), //white
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-                  ),
                 ]),
        );
   }

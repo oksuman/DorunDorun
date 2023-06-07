@@ -118,6 +118,9 @@ class _RunningPageState extends State<RunningPage> {
         code = 0;
         distanceGoal = widget.thisGroup.getCompGoal()["거리"]!;
       }
+      else{
+        code = -1;
+      }
     }
     else{
       code = -1;
@@ -237,41 +240,69 @@ class _RunningPageState extends State<RunningPage> {
     }
   }
   //////////////////////////////////////////////////////////////////////////////////////
+  //// Update Member's Log 관련 ////////////////////////////////////////////////////////////////
+  Timer? _checkMembersLog;
+
+  void _startChecking() {
+    _checkMembersLog = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        updateMembersLog();
+      });
+    });
+  }
+
+  void _stopChecking() {
+    _checkMembersLog?.cancel();
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////
 
   void updateMembersLog() async {
-    QuerySnapshot<Object?> querySnapshot = await _logReference.orderBy('delta_time', descending: true).get();
+    debugPrint("창모가 왔어");
+    if(memberSet.isNotEmpty){
+      QuerySnapshot<Object?> querySnapshot = await _logReference.orderBy('delta_time', descending: true).get();
 
-    if(querySnapshot.docs.isNotEmpty && querySnapshot is QuerySnapshot<Map<String, dynamic>>){
-      List<DocumentSnapshot<Map<String, dynamic>>> documents = querySnapshot!.docs;
+      if(querySnapshot.docs.isNotEmpty && querySnapshot is QuerySnapshot<Map<String, dynamic>>){
+        List<DocumentSnapshot<Map<String, dynamic>>> documents = querySnapshot!.docs;
 
-      Set<String> processedRunners = {};
-      for (DocumentSnapshot<Map<String, dynamic>> document in documents) {
-        Map<String, dynamic> data = document.data()!;
-        // document에 대한 작업 수행
-        var runner = data['runner'];
-        if(processedRunners.contains(runner)){
-          continue;
-        }
-        if(
-          deltaTime > _membersLog.getLastTime(runner: runner)
-        ){
-          if(data['accumulated_distance'] as num == -1){
-            ttsExit(memberName: runner);
-            memberSet.remove(runner);
+        Set<String> processedRunners = {};
+        for (DocumentSnapshot<Map<String, dynamic>> document in documents) {
+          Map<String, dynamic> data = document.data()!;
+          // document에 대한 작업 수행
+          var runner = data['runner'];
+          debugPrint("______________");
+          debugPrint(runner);
+          debugPrint("______________");
+          if(memberSet.contains(runner)){
+            if(processedRunners.contains(runner)){
+              continue;
+            }
+            if(
+              data["delta_time"] > _membersLog.getLastTime(runner: runner)
+            ){
+              if(data['accumulated_distance'] as num == -1){
+                ttsExit(memberName: runner);
+                if(widget.userName != runner){
+                  memberSet.remove(runner);
+                }
+                debugPrint("$memberSet");
+              }
+              else{
+                debugPrint("왜 아닐까 : ${data['accumulated_distance'] as num}");
+                _membersLog.addRecentLog(
+                  runner: runner as String,
+                  deltaTime: deltaTime as num,
+                  distanceMoved: data['accumulated_distance'] as num,
+                  velocity: data['velocity'] as num,
+                );
+              }
+            }
+            processedRunners.add(runner);
+            var completed = memberSet.difference(processedRunners).isEmpty;
+            if(completed){
+              break;
+            }
           }
-          else{
-            _membersLog.addRecentLog(
-              runner: runner as String,
-              deltaTime: deltaTime as num,
-              distanceMoved: data['accumulated_distance'] as num,
-              velocity: data['velocity'] as num,
-            );
-          }
-        }
-        processedRunners.add(runner);
-        var completed = memberSet.difference(processedRunners).isEmpty;
-        if(completed){
-          break;
         }
       }
     }
@@ -350,6 +381,7 @@ class _RunningPageState extends State<RunningPage> {
     setTts(); //tts 설정
     _getTtsMsg(); //tts 스트림 열기
     _startTimer();
+    _startChecking();
     var groupId = widget.thisGroup.getGroupId();
     _logReference = _groupReference.doc(groupId).collection("log");
     initialLocation = widget.initialLocation;
@@ -378,8 +410,7 @@ class _RunningPageState extends State<RunningPage> {
 
   @override
   Widget build(BuildContext context) {
-    updateMembersLog();
-    _membersLog.debugPrintLog();
+    // _membersLog.debugPrintLog();
     lock.synchronized(() async{
       await _speakTtsMsg(); //tts speak -> synchronize 시킴
     });
@@ -518,11 +549,7 @@ class _RunningPageState extends State<RunningPage> {
                         snapshots.add(newData);
                         // 지나온 경로에 새로운 포인트 추가
                         pathMoved.add(cur);
-                        debugPrint("distanceDelta : $distanceDelta");
-                        debugPrint("isMock: $_isMocked");
                       }
-                      debugPrint("pathMoved: $pathMoved");
-                      debugPrint("isMock: $_isMocked");
                     }
                     return Center(
                       child: Column(
@@ -594,8 +621,6 @@ class _RunningPageState extends State<RunningPage> {
                   FloatingActionButton(
                     onPressed: () => setState(() {
                       btnClicked();
-                      tts.speak("text");
-                      print("speak");
                     }),
                     heroTag: 'pause/restart running',
                     backgroundColor: btnColor,
@@ -612,6 +637,7 @@ class _RunningPageState extends State<RunningPage> {
                               context: context,
                               builder: (BuildContext context){
                                 return AlertDialog(
+                                  title: const Text("운동을 그만두시게요?"),
                                   contentPadding: const EdgeInsets.only(top: 0),
                                   backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
                                   content: SizedBox(
@@ -631,7 +657,7 @@ class _RunningPageState extends State<RunningPage> {
                                                   style: TextStyle(
                                                     fontFamily: "SCDream",
                                                     color: Color.fromARGB(255, 34, 40, 49), //black
-                                                    fontSize: 20,
+                                                    fontSize: 17,
                                                   ),
                                                 )
                                               else if(code == 1)
@@ -641,7 +667,7 @@ class _RunningPageState extends State<RunningPage> {
                                                   style: TextStyle(
                                                     fontFamily: "SCDream",
                                                     color: Color.fromARGB(255, 34, 40, 49), //black
-                                                    fontSize: 20,
+                                                    fontSize: 17,
                                                   ),
                                                 ),
                                               const Text(
@@ -650,7 +676,7 @@ class _RunningPageState extends State<RunningPage> {
                                                   style: TextStyle(
                                                   fontFamily: "SCDream",
                                                   color: Color.fromARGB(255, 34, 40, 49), //black
-                                                  fontSize: 20,
+                                                  fontSize: 17,
                                                 ),
                                               ),
                                             ],
@@ -689,7 +715,7 @@ class _RunningPageState extends State<RunningPage> {
                                               onPressed : (){
                                                 Navigator.of(context).pop();
                                               },
-                                              child : const Text("이어서 달리기",
+                                              child : const Text("계속",
                                                 style: TextStyle(
                                                   fontFamily: "SCDream",
                                                   color: Color.fromARGB(255, 238, 238, 238), //white
@@ -728,7 +754,8 @@ class _RunningPageState extends State<RunningPage> {
   void dispose() {
     super.dispose();
     Wakelock.disable();
-    _runningTimer?.cancel();
+    _stopTimer();
+    _stopChecking();
     try{
       _ttsListen!.cancel(); //tts 목록 스트림 구독 끊음(최적화)
     }catch(e){

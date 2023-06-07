@@ -93,26 +93,23 @@ class _RunResultPageState extends State<RunResultPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          // 앱 상단 바
+        appBar: AppBar( //앱 상단 바
           elevation: 0,
-          iconTheme:
-              const IconThemeData(color: Color.fromARGB(255, 238, 238, 238)),
-          //white
+          iconTheme: const IconThemeData(color: Color.fromARGB(255, 34, 40, 49)),
           title: const Text(
-            "결과",
+            "러닝 종료",
             style: TextStyle(
                 fontFamily: "SCDream",
-                color: Color.fromARGB(255, 238, 238, 238), //white
+                color: Color.fromARGB(255, 34, 40, 49),
                 fontSize: 20,
                 fontWeight: FontWeight.bold),
           ),
-          backgroundColor: const Color.fromARGB(255, 0, 173, 181),
-          //teal
+          backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
           centerTitle: true,
         ),
+        backgroundColor: const Color.fromARGB(255, 238, 238, 238), //wh
         body: ListView(children: <Widget>[
-          const SizedBox(height: 5),
+          const SizedBox(height: 10),
           Text(
             DateFormatting.dateFormatting(DateTime.fromMillisecondsSinceEpoch(widget.startTime)),
             textAlign: TextAlign.center,
@@ -120,15 +117,15 @@ class _RunResultPageState extends State<RunResultPage> {
               fontFamily: "SCDream",
               color: Color.fromARGB(255, 34, 40, 49), //black
               fontWeight: FontWeight.w900,
-              fontSize: 20,
+              fontSize: 25,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 10),
           Container(
             margin: const EdgeInsets.all(4),
             decoration: BoxDecoration(
                 border: Border.all(
-              color: const Color.fromARGB(255, 0, 173, 181),
+              color: const Color.fromARGB(255, 238, 238, 238),
               width: 4.0,
             )),
             width: double.infinity,
@@ -138,6 +135,7 @@ class _RunResultPageState extends State<RunResultPage> {
               options: MapOptions(
                 center: center,
                 minZoom: 13,
+                maxZoom:  18,
                 zoom: 15,
                 maxBounds: LatLngBounds(LatLng(30, 120), LatLng(40, 140)),
               ),
@@ -153,9 +151,9 @@ class _RunResultPageState extends State<RunResultPage> {
                       points: widget.pathMoved,
                       color: const Color.fromARGB(255, 0, 173, 181),
                       borderColor: const Color.fromARGB(255, 0, 173, 181),
-                      strokeWidth: 5,
-                      borderStrokeWidth: 5,
-                      isDotted: true,
+                      strokeWidth: 3.5,
+                      borderStrokeWidth: 3.5,
+                      isDotted: false,
                       // 속력에 따라 색깔 gradientColors 를 조정가능
                     ),
                   ],
@@ -163,7 +161,20 @@ class _RunResultPageState extends State<RunResultPage> {
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          if(widget.goalCompleted)
+            const SizedBox(height: 15),
+          if(widget.goalCompleted)
+            const Text(
+            "목표를 달성하셨습니다 !",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "SCDream",
+              color: Color.fromARGB(255, 34, 40, 49), //black
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 15),
           Text(
             "달린 거리 : ${(widget.distanceMoved / unit1000Int).toStringAsFixed(2)} km",
             textAlign: TextAlign.center,
@@ -171,7 +182,7 @@ class _RunResultPageState extends State<RunResultPage> {
               fontFamily: "SCDream",
               color: Color.fromARGB(255, 34, 40, 49), //black
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 17,
             ),
           ),
           const SizedBox(height: 5),
@@ -182,7 +193,7 @@ class _RunResultPageState extends State<RunResultPage> {
               fontFamily: "SCDream",
               color: Color.fromARGB(255, 34, 40, 49), //black
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 17,
             ),
           ),
           const SizedBox(height: 5),
@@ -195,72 +206,91 @@ class _RunResultPageState extends State<RunResultPage> {
               fontFamily: "SCDream",
               color: Color.fromARGB(255, 34, 40, 49), //black
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 17,
             ),
           ),
           const SizedBox(height: 10),
-          if(!_isLoading)
-            ElevatedButton(
-              onPressed: () async {
-                setState(() {
-                  _isLoading = true; // 비대기 작업 완료 후 대기 상태 해제
-                });
-                await _saveLogWithPath();
-                Navigator.popAndPushNamed(context, "/toNavigationBarPage");
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(
+                width: 200,
+                child: _isLoading
+                    ? CircularProgressIndicator()
+                    : TextButton(
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    await _saveLogWithPath();
+                    Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 0, 173, 181),
+                  ),
+                  child: const Text(
+                    '경로도 함께 저장하기',
+                    style: TextStyle(
+                      fontFamily: "SCDream",
+                      color: Color.fromARGB(255, 238, 238, 238), // white
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
-              child: const Text(
-                '경로도 함께 저장하기',
-                style: TextStyle(
-                    fontFamily: "SCDream",
-                    color: Color.fromARGB(255, 238, 238, 238), //white
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16),
+              const SizedBox(
+                height: 5,
               ),
-            ),
-          if(_isLoading)
-            const CircularProgressIndicator(),
-          const SizedBox(
-            height: 10,
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _saveLog();
-              Navigator.popAndPushNamed(context, "/toNavigationBarPage");
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 0, 173, 181),
-            ),
-            child: const Text(
-              '기록 저장하기',
-              style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 238, 238, 238), //white
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
-            ),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.popAndPushNamed(context, "/toNavigationBarPage");
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueGrey,
-            ),
-            child: const Text(
-              '기록 삭제하기',
-              style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 238, 238, 238), //white
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
-            ),
+              SizedBox(
+                 width : 200,
+                 child : TextButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                  ),
+                  onPressed: () {
+                    _saveLog();
+                    Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+                  },
+                  child: const Text(
+                    '기록 저장하기',
+                    style: TextStyle(
+                        fontFamily: "SCDream",
+                        color: Color.fromARGB(255, 238, 238, 238), //white
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              SizedBox(
+                width : 200,
+                child : TextButton(
+                  onPressed: () {
+                    Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                  ),
+                  child: const Text(
+                    '기록 삭제하기',
+                    style: TextStyle(
+                        fontFamily: "SCDream",
+                        color: Color.fromARGB(255, 238, 238, 238), //white
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
+                ),
+              )
+            ],
           )
+          ,
         ]));
   }
 }
