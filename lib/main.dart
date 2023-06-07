@@ -1,7 +1,6 @@
 
 
 import 'package:dorun_dorun/Screens/analysisScreens/analysisPage.dart';
-import 'package:dorun_dorun/screens/homeScreens/customizePage.dart';
 import 'package:dorun_dorun/screens/homeScreens/makeRoomPage.dart';
 import 'package:dorun_dorun/screens/loginScreens/splashPage.dart';
 import 'package:flutter/material.dart';
