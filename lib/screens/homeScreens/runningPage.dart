@@ -621,8 +621,6 @@ class _RunningPageState extends State<RunningPage> {
                   FloatingActionButton(
                     onPressed: () => setState(() {
                       btnClicked();
-                      tts.speak("text");
-                      print("speak");
                     }),
                     heroTag: 'pause/restart running',
                     backgroundColor: btnColor,
@@ -639,6 +637,7 @@ class _RunningPageState extends State<RunningPage> {
                               context: context,
                               builder: (BuildContext context){
                                 return AlertDialog(
+                                  title: const Text("운동을 그만두시게요?"),
                                   contentPadding: const EdgeInsets.only(top: 0),
                                   backgroundColor: const Color.fromARGB(255, 238, 238, 238), //white
                                   content: SizedBox(
@@ -658,7 +657,7 @@ class _RunningPageState extends State<RunningPage> {
                                                   style: TextStyle(
                                                     fontFamily: "SCDream",
                                                     color: Color.fromARGB(255, 34, 40, 49), //black
-                                                    fontSize: 20,
+                                                    fontSize: 17,
                                                   ),
                                                 )
                                               else if(code == 1)
@@ -668,7 +667,7 @@ class _RunningPageState extends State<RunningPage> {
                                                   style: TextStyle(
                                                     fontFamily: "SCDream",
                                                     color: Color.fromARGB(255, 34, 40, 49), //black
-                                                    fontSize: 20,
+                                                    fontSize: 17,
                                                   ),
                                                 ),
                                               const Text(
@@ -677,7 +676,7 @@ class _RunningPageState extends State<RunningPage> {
                                                   style: TextStyle(
                                                   fontFamily: "SCDream",
                                                   color: Color.fromARGB(255, 34, 40, 49), //black
-                                                  fontSize: 20,
+                                                  fontSize: 17,
                                                 ),
                                               ),
                                             ],
@@ -716,7 +715,7 @@ class _RunningPageState extends State<RunningPage> {
                                               onPressed : (){
                                                 Navigator.of(context).pop();
                                               },
-                                              child : const Text("이어서 달리기",
+                                              child : const Text("계속",
                                                 style: TextStyle(
                                                   fontFamily: "SCDream",
                                                   color: Color.fromARGB(255, 238, 238, 238), //white

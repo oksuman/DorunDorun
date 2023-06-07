@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
@@ -217,7 +218,11 @@ class _GhostRunPageState extends State<GhostRunPage> {
 
     logDeltaTime = widget.snapshots[logIndex]['delta_time'];
     logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
+    debugPrint(" widget 에서 :  ${widget.snapshots.length}");
     logIndex++;
+    if(widget.snapshots.length == 1){
+      logFinished = true;
+    }
     Wakelock.enable();
   }
 
@@ -225,48 +230,52 @@ class _GhostRunPageState extends State<GhostRunPage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              height: 50,
-              color: const Color.fromARGB(255, 0, 173, 181),
-            ),
-            /*
+      body: SingleChildScrollView(
+        child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 50,
+                  color: const Color.fromARGB(255, 0, 173, 181),
+                ),
+                /*
              Timer : 운동 시작 후 경과된 시간을 표시하기 위한 용도로
              gps timestamp, firebase 서버시간과는 독립적인 시간
              */
-            Container(
-              width: double.infinity,
-              color: const Color.fromARGB(255, 0, 173, 181),
-              child: Text(
-                _timerFormatting(_runningSeconds),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: "SCDream",
-                    color: Color.fromARGB(255, 238, 238, 238), //white
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30
+                Container(
+                  width: double.infinity,
+                  color: const Color.fromARGB(255, 0, 173, 181),
+                  child: Text(
+                    _timerFormatting(_runningSeconds),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontFamily: "SCDream",
+                        color: Color.fromARGB(255, 238, 238, 238), //white
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              height: 20,
-              color: const Color.fromARGB(255, 0, 173, 181),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            ////////////////////////////////////// 여기까지가 시계 ///////////////////////////////////////
-            StreamBuilder<LocationData>(
-                initialData: initialLocation,
-                stream: location.onLocationChanged,
-                builder: (context, stream) {
-                  if(_isRunning && !_isMocked){
-                    /*
+                Container(
+                  width: double.infinity,
+                  height: 20,
+                  color: const Color.fromARGB(255, 0, 173, 181),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ////////////////////////////////////// 여기까지가 시계 ///////////////////////////////////////
+                StreamBuilder<LocationData>(
+                    initialData: initialLocation,
+                    stream: location.onLocationChanged,
+                    builder: (context, stream) {
+                      debugPrint("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡFㅡㅡㅡㅡㅡㅡㅡㅡㅡ");
+                      debugPrint("$logIndex");
+                      debugPrint("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡFㅡㅡㅡㅡㅡㅡㅡㅡㅡ");
+                      if(_isRunning && !_isMocked){
+                        /*
                     LocationData
                     latitude : 위도
                     longitude : 경도
@@ -274,247 +283,406 @@ class _GhostRunPageState extends State<GhostRunPage> {
                     accuracy : 정확도
                     velocity : 속도, 기본 단위는 m/s
                     */
-                    final changedLocation = stream.data; // 새로 받아온 gps 정보
+                        final changedLocation = stream.data; // 새로 받아온 gps 정보
 
-                    // 받아온 gps 정보로 변수 초기화. 받아온 값이 null 이라면 이전 값을 넣거나 0으로 초기화
-                    final currentLatitude = changedLocation?.latitude ?? previousLatitude;
-                    final currentLongitude = changedLocation?.longitude ?? previousLongitude;
-                    _isMocked = changedLocation?.isMock ?? true;
+                        // 받아온 gps 정보로 변수 초기화. 받아온 값이 null 이라면 이전 값을 넣거나 0으로 초기화
+                        final currentLatitude = changedLocation?.latitude ?? previousLatitude;
+                        final currentLongitude = changedLocation?.longitude ?? previousLongitude;
+                        _isMocked = changedLocation?.isMock ?? true;
 
-                    // 임시적으로 존재하는 변수들
-                    final currentSpeed = changedLocation?.speed ?? 0;
-                    final currentTime = changedLocation?.time ?? 0;
+                        // 임시적으로 존재하는 변수들
+                        final currentSpeed = changedLocation?.speed ?? 0;
+                        final currentTime = changedLocation?.time ?? 0;
 
-                    // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 두 값이 다르고 && 정확도 값이 5보다 작은 경우에만 갱신
-                    /*
+                        // 가장 마지막에 기록된 위치 정보와 새로운 정보를 비교하여 두 값이 다르고 && 정확도 값이 5보다 작은 경우에만 갱신
+                        /*
                       정확도 : 사용자가 해당 gps 데이터 근방 x미터(즉 반지름이 x인 원 안)에 있을 확률(신뢰도)가 y 퍼센트 이상이다.
                       에서 x값을 당당하는 것이 accuracy 이다.
                      */
-                    debugPrint("여기까진 실행중임");
-                    debugPrint("여기까진 실행중임 ${changedLocation?.accuracy}");
-                    if ((currentLatitude != previousLatitude ||
-                        currentLongitude != previousLongitude) &&
-                        (changedLocation?.accuracy ?? 10) < 10) {
-                      debugPrint("실행중임");
-                      final cur = LatLng(currentLatitude, currentLongitude);
-                      final distanceDelta = distance.as(LengthUnit.Meter, cur, LatLng(previousLatitude, previousLongitude));
-                      // 움직인 거리 업데이트
-                      distanceMoved += distanceDelta;
-                      //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
-                      if (distanceMoved.toInt() ~/ unit1000Int > timesUnit) {
-                        timesUnit++;
-                        ttsGuideGhost1(
-                            times: timesUnit, unit: unit1Kilo,
-                            pace: TimeFormatting.timeVoiceFormatting(
-                              timeInSecond : averagePace,
-                            ),
-                            distanceDiff : logDistanceMoved - distanceMoved,
-                        );
-                        pace.add({
-                          timesUnit : deltaTime
-                        });
-                      }
-                      // 지난 시간 업데이트
-                      deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
-                      // 평균 페이스 갱신
-                      averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
-                      previousLatitude = currentLatitude;
-                      previousLongitude = currentLongitude;
-                    }
-                    //// LOG 와 관련된 작업
-                    debugPrint("살아있나 $logFinished");
-                    if(!logFinished){
-                      debugPrint("deltaTime : $deltaTime");
-                      debugPrint("log : ${widget.snapshots[logIndex]['delta_time']}");
-                      if(_runningSeconds >= widget.snapshots[logIndex]['delta_time']){
-                        logIndex++;
-                        if(logIndex == logNum-1){
-                          ttsFinish();
-                          logFinished = true;
-                        }
-                        else{
-                          logDeltaTime = widget.snapshots[logIndex]['delta_time'];
-                          logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
-                          debugPrint("ㅡㅡㅡㅡㅡ유령꺼");
-                          debugPrint("시간 : $logDeltaTime");
-                          debugPrint("거리 : $logDistanceMoved");
-                          logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
-                          // 상대가 단위거리 주파했는지 확인
-                          if (distanceMoved.toInt() ~/ unit1000Int > logTimesUnit) {
-                            logTimesUnit++;
-                            ttsGuideGhost2(
-                              times: logTimesUnit, unit: unit1Kilo,
+                        debugPrint("여기까진 실행중임");
+                        debugPrint("여기까진 실행중임 ${changedLocation?.accuracy}");
+                        if ((currentLatitude != previousLatitude ||
+                            currentLongitude != previousLongitude) &&
+                            (changedLocation?.accuracy ?? 10) < 10) {
+                          debugPrint("실행중임");
+                          final cur = LatLng(currentLatitude, currentLongitude);
+                          final distanceDelta = distance.as(LengthUnit.Meter, cur, LatLng(previousLatitude, previousLongitude));
+                          // 움직인 거리 업데이트
+                          distanceMoved += distanceDelta;
+                          //// 누적 거리가 특정 조건에 달하면 TTS 안내를 실시한다. 현재는 1km 마다 음성 읽기, 추후 변경 가능 ////
+                          if (distanceMoved.toInt() ~/ unit1000Int > timesUnit) {
+                            timesUnit++;
+                            ttsGuideGhost1(
+                              times: timesUnit, unit: unit1Kilo,
                               pace: TimeFormatting.timeVoiceFormatting(
-                                timeInSecond : logAveragePace,
+                                timeInSecond : averagePace,
                               ),
+                              distanceDiff : logDistanceMoved - distanceMoved,
                             );
+                            pace.add({
+                              timesUnit : deltaTime
+                            });
+                          }
+                          // 지난 시간 업데이트
+                          deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
+                          // 평균 페이스 갱신
+                          averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
+                          previousLatitude = currentLatitude;
+                          previousLongitude = currentLongitude;
+                        }
+                        //// LOG 와 관련된 작업
+                        debugPrint("살아있나 $logFinished");
+                        if(!logFinished){
+                          debugPrint("deltaTime : $deltaTime");
+                          debugPrint("log : ${widget.snapshots[logIndex]['delta_time']}");
+                          if(_runningSeconds >= widget.snapshots[logIndex]['delta_time']){
+                            logIndex++;
+                            if(logIndex == logNum-1){
+                              ttsFinish();
+                              logFinished = true;
+                            }
+                            else{
+                              logDeltaTime = widget.snapshots[logIndex]['delta_time'];
+                              logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
+                              debugPrint("ㅡㅡㅡㅡㅡ유령꺼");
+                              debugPrint("시간 : $logDeltaTime");
+                              debugPrint("거리 : $logDistanceMoved");
+                              logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
+                              // 상대가 단위거리 주파했는지 확인
+                              if (distanceMoved.toInt() ~/ unit1000Int > logTimesUnit) {
+                                logTimesUnit++;
+                                ttsGuideGhost2(
+                                  times: logTimesUnit, unit: unit1Kilo,
+                                  pace: TimeFormatting.timeVoiceFormatting(
+                                    timeInSecond : logAveragePace,
+                                  ),
+                                );
+                              }
+                            }
                           }
                         }
                       }
-                    }
-                  }
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            /////////////////// 내가 현재 뛰고 있는 정보 /////////////////////
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                // 현재 페이스
-                                Text(
-                                  TimeFormatting.timeWriteFormatting(
-                                    timeInSecond : averagePace,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: "SCDream",
-                                    color: Color.fromARGB(255, 34, 40, 49), //black
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Text(
-                                  // 현재 움직인 거리
-                                  (distanceMoved/unit1000Int).toStringAsFixed(2),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: "SCDream",
-                                    color: Color.fromARGB(255, 34, 40, 49), //black
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            /////////////////////// 목록 //////////////////////////
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  color: const Color.fromARGB(255, 0, 173, 181),
-                                  child: const Text(
-                                    " PACE ",
-                                    style: TextStyle(
+                                /////////////////// 내가 현재 뛰고 있는 정보 /////////////////////
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    // 현재 페이스
+                                    Text(
+                                      TimeFormatting.timeWriteFormatting(
+                                        timeInSecond : averagePace,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: "SCDream",
-                                        color: Color.fromARGB(255, 238, 238, 238), //white
+                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-
-                                  color: const Color.fromARGB(255, 0, 173, 181),
-                                  child: const Text(
-                                    " KM ",
-                                    style: TextStyle(
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      // 현재 움직인 거리
+                                      (distanceMoved/unit1000Int).toStringAsFixed(2),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: "SCDream",
-                                        color: Color.fromARGB(255, 238, 238, 238), //white
+                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                                /////////////////////// 목록 //////////////////////////
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      color: const Color.fromARGB(255, 0, 173, 181),
+                                      child: const Text(
+                                        " PACE ",
+                                        style: TextStyle(
+                                            fontFamily: "SCDream",
+                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    Container(
 
-                            ///////////////////////과거 기록 (가져온)//////////////////////////
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                // 과거 페이스
-                                Text(
-                                  TimeFormatting.timeWriteFormatting(
-                                    timeInSecond : logAveragePace,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: "SCDream",
-                                    color: Color.fromARGB(255, 34, 40, 49), //black
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
+                                      color: const Color.fromARGB(255, 0, 173, 181),
+                                      child: const Text(
+                                        " KM ",
+                                        style: TextStyle(
+                                            fontFamily: "SCDream",
+                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Text(
-                                  // 과거 움직인 거리
-                                  (logDistanceMoved/unit1000Int).toStringAsFixed(2),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: "SCDream",
-                                    color: Color.fromARGB(255, 34, 40, 49), //black
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
+
+                                ///////////////////////과거 기록 (가져온)//////////////////////////
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    // 과거 페이스
+                                    Text(
+                                      TimeFormatting.timeWriteFormatting(
+                                        timeInSecond : logAveragePace,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: "SCDream",
+                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      // 과거 움직인 거리
+                                      (logDistanceMoved/unit1000Int).toStringAsFixed(2),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: "SCDream",
+                                        color: Color.fromARGB(255, 34, 40, 49), //black
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        /*
+                            /*
                           gps 데이터를 stream 으로 받아와 화면을 주기적으로 update
                           현재는 임시로 화면을 구축해둔 상태
                           TODO : unity 화면으로 gps 데이터를 표현
                           */
-                        const SizedBox(
-                          height: 25,
+                            const SizedBox(
+                              height: 25,
+                            ),
+                            SingleChildScrollView(
+                              child : Container(
+                                color: Colors.grey,
+                                width: MediaQuery.of(context).size.width,
+                                height: 400,
+                                child: const Text("달리기 창"),
+                              ),
+                            ),
+                          ],
                         ),
-                        Container(
-                          color: Colors.grey,
-                          width: MediaQuery.of(context).size.width,
-                          height: 400,
-                          child: const Text("달리기 창"),
-                        ),
-                      ],
+                      );
+                    }),
+                const SizedBox(
+                  height: 25,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    FloatingActionButton(
+                      onPressed: () => setState(() {
+                        btnClicked();
+                      }),
+                      heroTag: 'pause/restart running',
+                      backgroundColor: btnColor,
+                      child: Icon(_runningControlBtn),
                     ),
-                  );
-                }),
-            const SizedBox(
-              height: 25,
-            ),
-            // 운동 시작, 운동 종료 버튼들
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                FloatingActionButton(
-                  onPressed: () => setState(() {
-                    btnClicked();
-                  }),
-                  heroTag: 'pause/restart running',
-                  backgroundColor: btnColor,
-                  child: Icon(_runningControlBtn),
+                    FloatingActionButton(
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context){
+                              String? userInput;
+                              if(logFinished){
+                                return AlertDialog(
+                                  title: const Text("운동을 완료하였습니다!"),
+                                  titlePadding: const EdgeInsets.all(20),
+                                  contentPadding: const EdgeInsets.only(top: 0),
+                                  backgroundColor: const Color.fromARGB(255, 238, 238, 238),
+                                  content: SizedBox(
+                                    width: MediaQuery.of(context).size.width * 0.9,
+                                    height: 150,
+                                    child: SingleChildScrollView( // SingleChildScrollView 추가
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const SizedBox(height: 5),
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const Text(
+                                                "담벼락에 남길 한마디를 입력해주세요",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontFamily: "SCDream",
+                                                  color: Color.fromARGB(255, 34, 40, 49), // black
+                                                  fontSize: 17,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              TextFormField(
+                                                onChanged: (value) {
+                                                  // 입력 값이 변경될 때마다 호출되는 콜백
+                                                  setState(() {
+                                                    userInput = value; // 입력 값을 변수에 저장
+                                                  });
+                                                },
+                                                decoration: const InputDecoration(
+                                                  hintText: '텍스트를 입력하세요', // 입력 필드에 힌트 텍스트
+                                                  contentPadding: EdgeInsets.symmetric(horizontal: 10), // 수평(padding) 값 조정
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context); // AlertDialog 닫기
+                                              _data = {
+                                                "runner" : userName,
+                                                "average_pace" : TimeFormatting.timeWriteFormatting(
+                                                  timeInSecond : averagePace,
+                                                ),
+                                                "total_distance" : distanceMoved,
+                                                "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
+                                                "wall" : userInput,
+                                              };
+                                              _saveLog(_data);
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('확인'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+
+                              }
+                              else{
+                                return AlertDialog(
+                                    title: const Text("운동을 그만두시게요?"),
+                                    contentPadding: const EdgeInsets.only(top: 0),
+                                    backgroundColor: const Color.fromARGB(255, 238, 238, 238),
+                                    content: SizedBox(
+                                        width: MediaQuery.of(context).size.width * 0.8,
+                                        height: 120,
+                                        child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const SizedBox(height : 5),
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: const [
+                                                  Text(
+                                                    "아직 기록이 남아있습니다.",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      fontFamily: "SCDream",
+                                                      color: Color.fromARGB(255, 34, 40, 49), //black
+                                                      fontSize: 17,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    "그래도 그만하시겠습니까?",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      fontFamily: "SCDream",
+                                                      color: Color.fromARGB(255, 34, 40, 49), //black
+                                                      fontSize: 17,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  SizedBox(
+                                                      child : ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(
+                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
+                                                          backgroundColor: Colors.grey, //teal
+                                                          elevation: 0,
+                                                        ),
+                                                        onPressed : (){
+                                                          Navigator.of(context).pop();
+                                                          _data = {
+                                                            "runner" : userName,
+                                                            "average_pace" : TimeFormatting.timeWriteFormatting(
+                                                              timeInSecond : averagePace,
+                                                            ),
+                                                            "total_distance" : distanceMoved,
+                                                            "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
+                                                            "wall" : "",
+                                                          };
+                                                          _saveLog(_data);
+                                                          Navigator.pop(context);
+                                                        },
+                                                        child : const Text("종료",
+                                                          style: TextStyle(
+                                                            fontFamily: "SCDream",
+                                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                  const SizedBox(width: 5,),
+                                                  SizedBox(
+                                                      child : ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(
+                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5),),
+                                                          backgroundColor: const Color.fromARGB(255, 0, 173, 181), //teal
+                                                          elevation: 0,
+                                                        ),
+                                                        onPressed : (){
+                                                          Navigator.of(context).pop();
+                                                        },
+                                                        child : const Text("계속",
+                                                          style: TextStyle(
+                                                            fontFamily: "SCDream",
+                                                            color: Color.fromARGB(255, 238, 238, 238), //white
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      )
+                                                  ),
+                                                ],
+                                              ),
+                                            ]
+                                        )
+                                    )
+                                );
+                              }
+                            }
+                        );
+                      },
+                      heroTag: 'strop running',
+                      backgroundColor: Colors.blueGrey,
+                      child: const Text("Exit"),
+                    ),
+                  ],
                 ),
-                FloatingActionButton(
-                  onPressed: () {
-                    _data = {
-                      "runner" : userName,
-                      "average_pace" : TimeFormatting.timeWriteFormatting(
-                        timeInSecond : averagePace,
-                      ),
-                      "total_distance" : distanceMoved,
-                      "start_time" : DateTime.fromMillisecondsSinceEpoch(defaultTime),
-                    };
-                    _saveLog(_data);
-                    Navigator.pop(context);
-                  },
-                  heroTag: 'strop running',
-                  backgroundColor: Colors.blueGrey,
-                  child: const Text("Exit"),
-                ),
+                // 운동 시작, 운동 종료 버튼들
               ],
             )
-          ],
-        )
+        ),
       ),
     );
   }
