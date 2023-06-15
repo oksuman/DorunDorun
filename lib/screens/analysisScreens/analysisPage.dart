@@ -1,4 +1,5 @@
 import 'package:dorun_dorun/Screens/analysisScreens/detailPage.dart';
+import 'package:dorun_dorun/utilities/firebaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,6 +19,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
   String _uid = "";
   String _uname = "";
   String _ugroup = "";
+  String _uAvatarId = "00";
   final currentUser = FirebaseAuth.instance;
 
   // user 컬렉션 참조
@@ -40,6 +42,18 @@ class _AnalysisPageState extends State<AnalysisPage> {
         _ugroup = value!;
       });
     });
+
+  }
+
+  _getAvartarId() async{
+    await _getMyData();
+    if(_thisUserId==null){
+      _uAvatarId = await FirebaseService(
+          uid: _uid).getAvatarId(); //초대 수락
+    }else{
+      _uAvatarId = await FirebaseService(
+          uid: _thisUserId!).getAvatarId(); //초대 수락
+    }
   }
 
   @override
@@ -48,11 +62,14 @@ class _AnalysisPageState extends State<AnalysisPage> {
     super.initState();
     _getMyData();
     initializeDateFormatting();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _getAvartarId()); //빌드 후 실행
   }
 
   @override
   Widget build(BuildContext context) {
     _thisUserId = ModalRoute.of(context)?.settings.arguments as String?; //인자 전 페이지에서 받아오기
+
     //print(_uid);
     return Scaffold(
         appBar: AppBar(
@@ -170,6 +187,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                                               ["total_distance"] / 1000)
                                       .toStringAsFixed(2),
                                   docID : logs.data!.docs[index].reference.id,
+                                  logAvatarId: _uAvatarId,
                                 )));
                       },
                     );

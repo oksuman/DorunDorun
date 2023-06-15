@@ -42,6 +42,16 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   String _gid = ""; //인자로 전달받은 그룹 아이디
   String _thisGroupId = ""; //현재 그룹에 저장할 아이디
   Group _thisGroup = new Group(); //그룹 클래스
+  Map<String, Image> _bossImg = {
+    "1단계": Image.asset("assets/images/boss1.png"),
+    "2단계": Image.asset("assets/images/boss2.png"),
+    "3단계": Image.asset("assets/images/boss3.png")
+  };
+  Map<String, String> _bossComment = {
+    "1단계": "이 닭은 예사로운 닭이 아닙니다.",
+    "2단계": "두 발로 달리는 두더지를 본 적이 있나요?",
+    "3단계": "조심하세요! 이 몬스터에게 밟히면 아플겁니다."
+  };
 
   //스트림 종료 위해(최적화)
   StreamSubscription? _groupDocListen = null; //그룹 다큐멘트 스트림 구독
@@ -87,6 +97,7 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     await _getMyData(); //내 데이터 받아오기
     if (_gid == "") { //만약 이전페이지에서 전달 받은 그룹 아이디가 없을 때, (버튼눌러 들어옴)
       if(_ugroup == ""){ //만약 현재 내 그룹이 없으면,
+        _loadingScreen();
         String? groupID = await FirebaseService(uid: _uid).createGroup(_uname); // 새로 방 파기
         _thisGroupId = groupID!; //새로운 그룹 아이디 -> 현재 그룹 아이디
       }else{ //현재 내 그룹이 있으면(스토리지),
@@ -237,6 +248,21 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
     );
   }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+  void _loadingScreen() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 0),
+        pageBuilder: (context, animation, secondaryAnimation) => RoomLoadingPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
   //위젯 시작 시
   @override
   void initState() {
@@ -791,24 +817,25 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
   Widget _modeImg(String mode){
     if(mode == "basic"){
       return Container(
-        color: Colors.black,
+        color: Colors.white,
         child: Image.asset("assets/images/basic.png"),
         width: MediaQuery.of(context).size.width,
-        height: 195,
+        height: 180
+        ,
       );
     }else if(mode == "coop"){
       return Container(
-        color: Colors.black,
+        color: Colors.white,
         child: Image.asset("assets/images/coop.png"),
         width: MediaQuery.of(context).size.width,
-        height: 195,
+        height: 180,
       );
     }else if (mode == "comp"){
       return Container(
-        color: Colors.black,
+        color: Colors.white,
         child: Image.asset("assets/images/comp.png"),
         width: MediaQuery.of(context).size.width,
-        height: 195,
+        height: 180,
       );
     }else{
       return Container(
@@ -1118,9 +1145,19 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ),
         ),
         Container(
-          width: 180,
+          width: 120,
           height: 120,
-          color: Colors.grey,
+          color: Color.fromARGB(255, 238, 238, 238), //white
+          child: _bossImg[_thisGroup.getCoopSetting()],
+        ),
+        SizedBox(height: 10,),
+        Text(
+          _bossComment[_thisGroup.getCoopSetting()]!,
+          style: const TextStyle(
+            fontFamily: "SCDream",
+            color: Color.fromARGB(255, 57, 62, 70), //grey
+            fontSize: 14,
+          ),
         ),
         SizedBox(height: 10,),
         Row(
@@ -1361,6 +1398,61 @@ class _MakeRoomPageState extends State<MakeRoomPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class RoomLoadingPage extends StatefulWidget {
+  const RoomLoadingPage({Key? key}) : super(key: key);
+
+  @override
+  State<RoomLoadingPage> createState() => _RoomLoadingPageState();
+}
+
+class _RoomLoadingPageState extends State<RoomLoadingPage> {
+  double _containerSize = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_){
+      setState(() {
+        _containerSize = 200;
+      });
+    }); //빌드 후 실행
+    Timer(Duration(milliseconds: 1000), () {
+      Navigator.of(context).pop();
+    });
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color.fromARGB(255, 238, 238, 238), //white
+      body: Stack(
+        children: [
+          Center(
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 1000),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(_containerSize/2),
+                color: const Color.fromARGB(255, 0, 173, 181),
+              ),
+              width: _containerSize,
+              height: _containerSize,
+            ),
+          ),
+          Center(
+            child: Text("방 생성 중 …",
+              style: TextStyle(
+                  fontFamily: "SCDream",
+                  color: Color.fromARGB(255, 34, 40, 49),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

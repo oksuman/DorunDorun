@@ -90,6 +90,10 @@ flutter:
     - assets/images/level3_context.jpg
     - assets/images/level4_context.jpg
     - assets/images/level5_context.jpg
+    - assets/images/boss1.png
+    - assets/images/boss2.png
+    - assets/images/boss3.png
+    - assets/images/splash_logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

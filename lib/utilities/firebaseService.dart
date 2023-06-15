@@ -30,7 +30,7 @@ class FirebaseService{
       "runs": 0,
       "inside": false,
       "group": "",
-      "avatarId": (gender=="남자")?"00":"01",
+      "avatarId": "000",
       "isKicked": false
     });
   }
@@ -379,7 +379,7 @@ class FirebaseService{
   Future setAvatarId(String avatarId) async {
     final DocumentReference userDocument = _userCollection.doc(uid);
     await userDocument.update({
-      "membersId": avatarId,
+      "avatarId": avatarId,
     });
   }
 

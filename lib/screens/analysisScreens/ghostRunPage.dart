@@ -13,6 +13,9 @@ import '../analysisScreens/dataFormat.dart';
 import '../../utilities/storageService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../homeScreens/runSplashPage.dart';
+
+
 class GhostRunPage extends StatefulWidget {
   final List<dynamic> logPace;
   final List<dynamic> snapshots;
@@ -20,6 +23,8 @@ class GhostRunPage extends StatefulWidget {
   final String distanceMoved;
   final String docID;
   final LocationData initialLocation;
+  final String myAvatarId;
+  final String logAvatarId;
 
   const GhostRunPage({
     super.key,
@@ -29,6 +34,8 @@ class GhostRunPage extends StatefulWidget {
     required this.distanceMoved,
     required this.docID,
     required this.initialLocation,
+    required this.myAvatarId,
+    required this.logAvatarId,
   });
 
   @override
@@ -36,7 +43,6 @@ class GhostRunPage extends StatefulWidget {
 }
 
 class _GhostRunPageState extends State<GhostRunPage> {
-
   late final LocationData initialLocation;
   late final int defaultTime; // 러닝을 시작한 시점(timestamp), 이 변수를 기준으로 흐른 시간을 고려
   num distanceMoved = 0; // 이번 러닝에서 달린 누적 거리
@@ -180,7 +186,21 @@ class _GhostRunPageState extends State<GhostRunPage> {
         .speak("상대방의 운동이 종료되었습니다.");
   }
   //////////////////////////////////////////////////////////////////////////////////////
-
+  void _runSplashScreen() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 0),
+        pageBuilder: (context, animation, secondaryAnimation) => RunSplashScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -206,7 +226,9 @@ class _GhostRunPageState extends State<GhostRunPage> {
        */
     );
     setTts();
-    _startTimer();
+    Timer(const Duration(seconds: 3),()async{
+      _startTimer();
+    });
     initialLocation = widget.initialLocation;
     defaultTime = initialLocation.time!.toInt();
     previousLatitude = initialLocation.latitude!;
@@ -224,6 +246,8 @@ class _GhostRunPageState extends State<GhostRunPage> {
       logFinished = true;
     }
     Wakelock.enable();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _runSplashScreen()); //빌드 후 실행
   }
 
   @override
@@ -327,6 +351,8 @@ class _GhostRunPageState extends State<GhostRunPage> {
                           deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
                           // 평균 페이스 갱신
                           averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
+                          // 애니메이션 동기화
+
                           previousLatitude = currentLatitude;
                           previousLongitude = currentLongitude;
                         }
@@ -337,16 +363,14 @@ class _GhostRunPageState extends State<GhostRunPage> {
                           debugPrint("log : ${widget.snapshots[logIndex]['delta_time']}");
                           if(_runningSeconds >= widget.snapshots[logIndex]['delta_time']){
                             logIndex++;
-                            if(logIndex == logNum-1){
+                            if(logIndex >= logNum){
                               ttsFinish();
                               logFinished = true;
                             }
                             else{
                               logDeltaTime = widget.snapshots[logIndex]['delta_time'];
                               logDistanceMoved = widget.snapshots[logIndex]['accumulated_distance'];
-                              debugPrint("ㅡㅡㅡㅡㅡ유령꺼");
-                              debugPrint("시간 : $logDeltaTime");
-                              debugPrint("거리 : $logDistanceMoved");
+
                               logAveragePace  = ((unit1000Int * logDeltaTime)/logDistanceMoved).round();
                               // 상대가 단위거리 주파했는지 확인
                               if (distanceMoved.toInt() ~/ unit1000Int > logTimesUnit) {
@@ -402,8 +426,10 @@ class _GhostRunPageState extends State<GhostRunPage> {
                                       ),
                                     ),
                                     Text(
+                                      TimeFormatting.timeWriteFormatting(
+                                        timeInSecond : logAveragePace,
+                                      ),
                                       // 현재 움직인 거리
-                                      (distanceMoved/unit1000Int).toStringAsFixed(2),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         fontFamily: "SCDream",
@@ -419,9 +445,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
                                     Text(
-                                      TimeFormatting.timeWriteFormatting(
-                                        timeInSecond : logAveragePace,
-                                      ),
+                                      (distanceMoved/unit1000Int).toStringAsFixed(2),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         fontFamily: "SCDream",
@@ -473,7 +497,6 @@ class _GhostRunPageState extends State<GhostRunPage> {
                               color: Colors.grey,
                               width: MediaQuery.of(context).size.width,
                               height: 500,
-                              child: const Text("달리기 창"),
                             ),
                           ],
                         ),
@@ -481,7 +504,7 @@ class _GhostRunPageState extends State<GhostRunPage> {
                     }),
                 Container(
                   height: MediaQuery.of(context).size.height-690,
-                  color: Colors.grey.withOpacity(0.5),
+                  color: const Color.fromARGB(255, 238, 238, 238), //white
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [

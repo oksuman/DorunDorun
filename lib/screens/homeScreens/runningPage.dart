@@ -3,6 +3,7 @@
  *************************************/
 
 import 'dart:async';
+import 'package:dorun_dorun/screens/homeScreens/runSplashPage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
@@ -40,6 +41,8 @@ class RunningPage extends StatefulWidget {
 
 
 class _RunningPageState extends State<RunningPage> {
+  String memberAvatarId ="";
+  int myNum = 0;
   // group 컬렉션 참조
   final CollectionReference _userCollection =
     FirebaseFirestore.instance.collection("users"); //유저 컬렉션
@@ -87,7 +90,7 @@ class _RunningPageState extends State<RunningPage> {
   bool goalFullCompleted = false;
   bool goalHalfCompleted = false;
   late final double distanceGoal;
-  late final int timeGoal;
+  late final double timeGoal;
 
   void setMode(){
     debugPrint("세팅은 할게");
@@ -103,7 +106,7 @@ class _RunningPageState extends State<RunningPage> {
       }
       else if(widget.thisGroup.getBasicSetting() == "목표 시간"){
         code = 1;
-        distanceGoal = goal["목표 시간"]!;
+        timeGoal = goal["목표 시간"]!;
       }
       else{
         code = -1;
@@ -114,9 +117,11 @@ class _RunningPageState extends State<RunningPage> {
       distanceGoal = widget.thisGroup.getCoopGoal(0);
     }
     else if(widget.thisGroup.getGroupMode() == "comp"){
-      if(widget.thisGroup.getCompSetting() == "거리"){
+      debugPrint("comp로 세팅하러옴");
+      if(widget.thisGroup.getCompSetting() == "목표 거리"){
+        debugPrint("이건 경쟁이고 거리야");
         code = 0;
-        distanceGoal = widget.thisGroup.getCompGoal()["거리"]!;
+        distanceGoal = widget.thisGroup.getCompGoal()["목표 거리"]!;
       }
       else{
         code = -1;
@@ -201,6 +206,18 @@ class _RunningPageState extends State<RunningPage> {
     await tts.speak("$memberName 님이 러닝을 종료하였습니다.");
   }
 
+  void ttsOtherCoopFailed({
+    required String memberName,
+  }) async{
+    await tts.speak("   $memberName 님이 몬스터에게 잡혀 트랙을 이탈 하였습니다....");
+  }
+
+  void ttsMyCoopFailed() async {
+    debugPrint("잡혔다고말해");
+    await tts.speak("몬스터에게 잡혔습니다...");
+  }
+
+
   void ttsHalfDistance() async{
     await tts.speak("운동 목표의 절반에 도달 하셨습니다. 조금만 힘내세욥!");
   }
@@ -257,8 +274,10 @@ class _RunningPageState extends State<RunningPage> {
 
   //////////////////////////////////////////////////////////////////////////////////////
 
+
   void updateMembersLog() async {
-    debugPrint("창모가 왔어");
+    var count = 2;
+
     if(memberSet.isNotEmpty){
       QuerySnapshot<Object?> querySnapshot = await _logReference.orderBy('delta_time', descending: true).get();
 
@@ -278,10 +297,17 @@ class _RunningPageState extends State<RunningPage> {
               continue;
             }
             if(
-              data["delta_time"] > _membersLog.getLastTime(runner: runner)
+            data["delta_time"] > _membersLog.getLastTime(runner: runner)
             ){
               if(data['accumulated_distance'] as num == -1){
                 ttsExit(memberName: runner);
+                if(widget.userName != runner){
+                  memberSet.remove(runner);
+                }
+                debugPrint("$memberSet");
+              }
+              else if(data['accumulated_distance'] as num == -99){
+                ttsOtherCoopFailed(memberName: runner);
                 if(widget.userName != runner){
                   memberSet.remove(runner);
                 }
@@ -303,8 +329,31 @@ class _RunningPageState extends State<RunningPage> {
               break;
             }
           }
+          var enemyDistanceMoved = data['accumulated_distance'] as num;
+          count++;
+          if(count > documents.length + 1){
+            count = 2;
+          }
         }
       }
+    }
+  }
+
+
+  void _getMemberAvatarId(){
+    List<String> membersId = widget.thisGroup.getMembersId();
+    Map<String, String> memberAvatarIdList = widget.thisGroup.getMembersAvatar();
+    membersId.forEach((memId){
+      memberAvatarId += memberAvatarIdList[memId]!;
+    });
+  }
+
+  void _getMyIndex(){
+    List<String> membersId = widget.thisGroup.getMembersId();
+    for(int i = 0; i < membersId.length; i++){
+        if(membersId[i] == widget.userId){
+
+        }
     }
   }
   //////////////////////////////////////////////////////////////////////////////////////
@@ -363,7 +412,68 @@ class _RunningPageState extends State<RunningPage> {
         )));
   }
 
+
+  //// Fail에 의한 탈주 ////
+  void coopFailedAndExit(int deltaTime) async{
+    // 러닝 중인 사람들에게 나갔음을 알리기 //
+    var failedtData = {
+      "runner": widget.userName,
+      "accumulated_distance": -99,
+      "delta_time": deltaTime,
+      "velocity": -99,
+    };
+    _logReference.add(failedtData);
+
+    StorageService().saveUserGroup(""); //스토리지 내 그룹 초기화
+
+    if(widget.thisGroup.getMembersNum()>1){ //멤버가 2명 이상일 때,
+      if(widget.thisGroup.getAdminId()==widget.userId){ //내가 admin 이면,
+        final nAdminId = widget.thisGroup.getMembersId()[1];
+        final nAdminName = widget.thisGroup.getMembersName()[1];
+        await FirebaseService(
+            uid: widget.userId,
+            gid: widget.thisGroup.getGroupId())
+            .adminExitGroup(widget.userName, nAdminName, nAdminId); //다음(1번) 멤버에게 권한 전달하고 나가기
+      }else{ // 내가 admin 아니면,
+        await FirebaseService(
+            uid: widget.userId,
+            gid: widget.thisGroup.getGroupId())
+            .exitGroup(widget.userName); //그룹 나가기
+      }
+    }else{ //멤버 수가 1명
+      await FirebaseService(
+          uid: widget.userId,
+          gid: widget.thisGroup.getGroupId())
+          .endGroup(); //그룹 삭제
+    }
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (context) => RunResultPage(
+          pathMoved: pathMoved,
+          snapshots: snapshots,
+          startTime: defaultTime,
+          passedTime: _runningSeconds,
+          distanceMoved: distanceMoved,
+          averagePace : averagePace,
+          pace : pace,
+          goalCompleted : goalFullCompleted,
+        )));
+  }
   //////////////////////////////////////////////////////////////////////////////////////
+  void _runSplashScreen() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 0),
+        pageBuilder: (context, animation, secondaryAnimation) => RunSplashScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -380,7 +490,9 @@ class _RunningPageState extends State<RunningPage> {
     );
     setTts(); //tts 설정
     _getTtsMsg(); //tts 스트림 열기
-    _startTimer();
+    Timer(const Duration(seconds: 3),()async{
+      _startTimer();
+    });
     _startChecking();
     var groupId = widget.thisGroup.getGroupId();
     _logReference = _groupReference.doc(groupId).collection("log");
@@ -406,6 +518,9 @@ class _RunningPageState extends State<RunningPage> {
     debugPrint("________________________");
     debugPrint("code : $code");
     Wakelock.enable();
+    _getMemberAvatarId();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _runSplashScreen()); //빌드 후 실행
   }
 
   @override
@@ -537,6 +652,7 @@ class _RunningPageState extends State<RunningPage> {
                         deltaTime = (currentTime.toInt() - defaultTime) ~/ 1000; // 단위 : 초
                         // 평균 페이스 갱신
                         averagePace = ((unit1000Int * deltaTime)/distanceMoved).round();
+                        //애니메이션 동기화
 
                         // 기록 저장
                         var newData = {
@@ -550,6 +666,8 @@ class _RunningPageState extends State<RunningPage> {
                         // 지나온 경로에 새로운 포인트 추가
                         pathMoved.add(cur);
                       }
+                      // 상대 달리기 동기화
+
                     }
                     return Center(
                       child: Column(
@@ -595,17 +713,6 @@ class _RunningPageState extends State<RunningPage> {
                             color: Colors.grey,
                             width: MediaQuery.of(context).size.width,
                             height: 500,
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  if(memberSet.isEmpty)
-                                    const Text("혼자 뛰는 중"),
-                                  if(memberSet.isNotEmpty)
-                                    Text(_membersLog.displayRecentLog()),
-                                ],
-                              ),
-                            )
                           ),
                         ],
                       ),
@@ -615,7 +722,7 @@ class _RunningPageState extends State<RunningPage> {
               Expanded(
                 child:
                 Container(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: const Color.fromARGB(255, 238, 238, 238), //white
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -633,6 +740,7 @@ class _RunningPageState extends State<RunningPage> {
                         onPressed: () {
                           if(code == -1){
                             exitRunningPage(deltaTime * 100 + 100);
+
                           }
                           else{
                             if(!goalFullCompleted){
@@ -767,4 +875,5 @@ class _RunningPageState extends State<RunningPage> {
       print("스트림이 닫히지 않았습니다.");
     }
   }
+
 }

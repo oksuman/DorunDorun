@@ -56,7 +56,7 @@ class Group{
   }
   setMembersAvatar(Map<String, dynamic> memAvatar){
     _membersAvatar.clear();
-    _membersAvatar.forEach((key, value) {
+    memAvatar.forEach((key, value) {
       _membersAvatar[key] = value.toString();
     });
   }

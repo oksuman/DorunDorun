@@ -7,7 +7,6 @@ import 'package:dorun_dorun/utilities/firebaseService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import '../../utilities/storageService.dart';
 
 class StartPage extends StatefulWidget {
@@ -155,25 +154,6 @@ class _StartPageState extends State<StartPage> {
               trailing: const Icon(Icons.navigate_next),
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              iconColor: const Color.fromARGB(255, 0, 173, 181),
-              //teal
-              focusColor: const Color.fromARGB(255, 0, 173, 181),
-              //teal
-              title: const Text(
-                '설정',
-                style: TextStyle(
-                  fontFamily: "SCDream",
-                  color: Color.fromARGB(255, 34, 40, 49), //black
-                  fontSize: 14,
-                ),
-              ),
-              onTap: () {
-
-              },
-              trailing: const Icon(Icons.navigate_next),
-            ),
-            ListTile(
               leading: const Icon(Icons.logout_sharp),
               iconColor: const Color.fromARGB(255, 0, 173, 181),
               //teal
@@ -197,46 +177,139 @@ class _StartPageState extends State<StartPage> {
           ],
         ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-              width: MediaQuery.of(context).size.width,
-              height: 500,
-              color: Colors.grey,
-              child: const Text("아바타창") //내 아바타 들어갈 위치
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.5),
-              ),
-              child: Center(
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 20, color: (_ugroup == "")?Colors.teal:Colors.blue),
-                    borderRadius: BorderRadius.circular(50),
-                    color: (_ugroup == "")
-                        ? const Color.fromARGB(255, 0, 173, 181)
-                        : Colors.lightBlueAccent, //teal
-                  ),
-                  child: IconButton(
-                    //달리기 버튼
-                    icon: const Icon(Icons.directions_run_sharp),
-                    iconSize: (40),
-                    color: const Color.fromARGB(255, 238, 238, 238), //white
-                    onPressed: () async {
-                      Navigator.pushNamed(context, "/toMakeRoomPage",
-                          arguments: ""); //메이크 룸 이동
-                    },
-                  ),
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  color: Colors.grey,
+                  width: MediaQuery.of(context).size.width,
+                  height: 500,
                 ),
-              ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      child: IconButton(onPressed: () async{
+                        String avatarid = await FirebaseService(uid: _uid).getAvatarId();
+                        String newavatarid = decrementHunsPlace(avatarid);
+                        await FirebaseService(uid: _uid).setAvatarId(newavatarid);
+                      }, icon: Icon(Icons.keyboard_arrow_left)),
+                    ),
+                    SizedBox(width: 40),
+                    Container(
+                      child: Text("머리",
+                        style: TextStyle(
+                            fontFamily: "SCDream",
+                            color: Color.fromARGB(255, 34, 40, 49),
+                            fontSize: 18),
+                      )
+                    ),
+                    SizedBox(width: 40),
+                    Container(
+                      child: IconButton(onPressed: () async{
+                        String avatarid = await FirebaseService(uid: _uid).getAvatarId();
+                        String newavatarid = incrementHunsPlace(avatarid);
+                        await FirebaseService(uid: _uid).setAvatarId(newavatarid);
+                      }, icon: Icon(Icons.keyboard_arrow_right)),
+                    )
+                  ]
+                ),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        child: IconButton(onPressed: () async{
+                          String avatarid = await FirebaseService(uid: _uid).getAvatarId();
+                          String newavatarid = decrementTensPlace(avatarid);
+                          await FirebaseService(uid: _uid).setAvatarId(newavatarid);
+                        }, icon: Icon(Icons.keyboard_arrow_left)),
+                      ),
+                      SizedBox(width: 40),
+                      Container(
+                          child: Text("상의",
+                            style: TextStyle(
+                                fontFamily: "SCDream",
+                                color: Color.fromARGB(255, 34, 40, 49),
+                                fontSize: 18),
+                          )
+                      ),
+                      SizedBox(width: 40),
+                      Container(
+                        child: IconButton(onPressed: () async{
+                          String avatarid = await FirebaseService(uid: _uid).getAvatarId();
+                          String newavatarid = incrementTensPlace(avatarid);
+                          await FirebaseService(uid: _uid).setAvatarId(newavatarid);
+                        }, icon: Icon(Icons.keyboard_arrow_right)),
+                      )
+                    ]
+                ),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        child: IconButton(onPressed: () async {
+                          String avatarid = await FirebaseService(uid: _uid).getAvatarId();
+                          String newavatarid = decrementUnitsPlace(avatarid);
+                          await FirebaseService(uid: _uid).setAvatarId(newavatarid);
+                        }, icon: Icon(Icons.keyboard_arrow_left)),
+                      ),
+                      SizedBox(width: 40),
+                      Container(
+                          child: Text("피부",
+                            style: TextStyle(
+                                fontFamily: "SCDream",
+                                color: Color.fromARGB(255, 34, 40, 49),
+                                fontSize: 18),
+                          )
+                      ),
+                      SizedBox(width: 40),
+                      Container(
+                        child: IconButton(onPressed: () async{
+                          String avatarid = await FirebaseService(uid: _uid).getAvatarId();
+                          String newavatarid = incrementUnitsPlace(avatarid);
+                          await FirebaseService(uid: _uid).setAvatarId(newavatarid);
+                        }, icon: Icon(Icons.keyboard_arrow_right)),
+                      )
+                    ]
+                ),
+              ],
             ),
-          ),
-        ],
+            Column(
+              children: [
+                SizedBox(height: 380,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 20, color: (_ugroup == "")?Colors.teal:Colors.blue),
+                        borderRadius: BorderRadius.circular(50),
+                        color: (_ugroup == "")
+                            ? const Color.fromARGB(255, 0, 173, 181)
+                            : Colors.lightBlueAccent, //teal
+                      ),
+                      child: IconButton(
+                        //달리기 버튼
+                        icon: const Icon(Icons.directions_run_sharp),
+                        iconSize: (40),
+                        color: const Color.fromARGB(255, 238, 238, 238), //white
+                        onPressed: () async {
+                          Navigator.pushNamed(context, "/toMakeRoomPage",
+                              arguments: ""); //메이크 룸 이동
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -450,5 +523,80 @@ class _StartPageState extends State<StartPage> {
             ),
           );
         });
+  }
+
+
+
+  // 100의 자릿수를 +하는 함수
+  String incrementHunsPlace(String number) {
+    int num100 = int.parse(number.substring(0, 1));
+    int num10 = int.parse(number.substring(1, 2));
+    int num1 = int.parse(number.substring(2, 3));
+    num100 = (num100 + 1) % 4;
+
+    return '$num100$num10$num1';
+  }
+
+// 100의 자릿수를 -하는 함수
+  String decrementHunsPlace(String number) {
+    int num100 = int.parse(number.substring(0, 1));
+    int num10 = int.parse(number.substring(1, 2));
+    int num1 = int.parse(number.substring(2, 3));
+
+    num100 = (num100 - 1) % 4;
+    if (num100 < 0) {
+      num100 = 3;
+    }
+
+    return '$num100$num10$num1';
+  }
+
+  // 100의 자릿수를 +하는 함수
+  String incrementTensPlace(String number) {
+    int num100 = int.parse(number.substring(0, 1));
+    int num10 = int.parse(number.substring(1, 2));
+    int num1 = int.parse(number.substring(2, 3));
+    num10 = (num10 + 1) % 4;
+
+    return '$num100$num10$num1';
+  }
+
+// 100의 자릿수를 -하는 함수
+  String decrementTensPlace(String number) {
+    int num100 = int.parse(number.substring(0, 1));
+    int num10 = int.parse(number.substring(1, 2));
+    int num1 = int.parse(number.substring(2, 3));
+
+    num10 = (num10 - 1) % 4;
+    if (num10 < 0) {
+      num10 = 3;
+    }
+
+    return '$num100$num10$num1';
+  }
+
+// 1의 자릿수를 +하는 함수
+  String incrementUnitsPlace(String number) {
+    int num100 = int.parse(number.substring(0, 1));
+    int num10 = int.parse(number.substring(1, 2));
+    int num1 = int.parse(number.substring(2, 3));
+
+    num1 = (num1 + 1) % 4;
+
+    return '$num100$num10$num1';
+  }
+
+// 1의 자릿수를 -하는 함수
+  String decrementUnitsPlace(String number) {
+    int num100 = int.parse(number.substring(0, 1));
+    int num10 = int.parse(number.substring(1, 2));
+    int num1 = int.parse(number.substring(2, 3));
+
+    num1 = (num1 - 1) % 4;
+    if (num1 < 0) {
+      num1 = 3;
+    }
+
+    return '$num100$num10$num1';
   }
 }

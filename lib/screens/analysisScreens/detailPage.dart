@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dorun_dorun/utilities/firebaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -17,6 +18,7 @@ class DetailPage extends StatefulWidget {
   final String averagePace;
   final String distanceMoved;
   final String docID;
+  final String logAvatarId;
 
   // TODO : 임시방편 주먹구구식 코드 재개발
   // TODO : snapshots 추가
@@ -31,6 +33,7 @@ class DetailPage extends StatefulWidget {
     required this.averagePace,
     required this.distanceMoved,
     required this.docID,
+    required this.logAvatarId
   });
 
   @override
@@ -44,6 +47,19 @@ class _DetailPageState extends State<DetailPage> {
   // user 컬렉션 참조
   final CollectionReference _userReference =
   FirebaseFirestore.instance.collection("users");
+
+  String myAvatarId = "000";
+
+  _getAvartarId() async{
+    myAvatarId = await FirebaseService(
+        uid: currentUser.currentUser!.uid).getAvatarId(); //초대 수락
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getAvartarId();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -266,6 +282,8 @@ class _DetailPageState extends State<DetailPage> {
                                     distanceMoved:  widget.distanceMoved,
                                     docID: widget.docID,
                                     initialLocation: res,
+                                    myAvatarId: myAvatarId,
+                                    logAvatarId: widget.logAvatarId
                                   )));
                             });
                           },

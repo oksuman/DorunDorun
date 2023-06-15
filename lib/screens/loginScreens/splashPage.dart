@@ -82,13 +82,10 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 0, 173, 181),
       body: Center(
         //앱 로고 이미지
-        child: Container(
-          width: 100,
-          height: 100,
-          color: const Color.fromARGB(255, 0, 173, 181),
-        )
+        child: Image.asset("assets/images/splash_logo.png"),
       ),
     );
   }

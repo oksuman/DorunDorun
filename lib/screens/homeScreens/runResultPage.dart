@@ -217,14 +217,14 @@ class _RunResultPageState extends State<RunResultPage> {
               SizedBox(
                 width: 200,
                 child: _isLoading
-                    ? CircularProgressIndicator()
+                    ? Center(child: CircularProgressIndicator())
                     : TextButton(
                   onPressed: () async {
                     setState(() {
                       _isLoading = true;
                     });
                     await _saveLogWithPath();
-                    Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+                    Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 0, 173, 181),
@@ -254,7 +254,7 @@ class _RunResultPageState extends State<RunResultPage> {
                   ),
                   onPressed: () {
                     _saveLog();
-                    Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+                    Navigator.of(context).pop();
                   },
                   child: const Text(
                     '기록 저장하기',
@@ -273,7 +273,7 @@ class _RunResultPageState extends State<RunResultPage> {
                 width : 200,
                 child : TextButton(
                   onPressed: () {
-                    Navigator.popAndPushNamed(context, "/toNavigationBarPage");
+                    Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
