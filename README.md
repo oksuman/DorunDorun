@@ -115,8 +115,8 @@ Team 오뚝
 향후 두런두런은 다양한 아바타 및 러닝트랙 에셋을 제공하고, 부분유료화를 통한 사업모델을 구축할 계획이다. 또한 업적 컨텐츠와 커스터마이징을 연동시켜 사용자의 동기를 고취시키고, 더욱 다양한 사용자를 확보하기 위하여 실내 러닝머신에 어플리케이션을 적용 시킬  방안을 생각 중에 있다. 만약 여건이 된다면 모두 반영하여 두런두런을 개선시킬 예정이다.
 
 ## VIII. 서비스 이미지
-<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/09e55f07-4a7c-4bdb-b007-57f8d9bd2263"/>
-<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/4367ab8c-654d-4c08-b488-a2d53baf44b0"/>
-<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/556cab36-43cf-4abd-b956-58d7a2d4227b"/>
-<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/cfcc267b-a949-4165-afc4-6c4611c7a496"/>
-<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/b20ad9c6-6c8f-4e59-aa07-3e901f310390"/>
+<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/03b54c58-f58d-4769-9efa-ab773cb7093f"/>
+<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/c3038b2b-92c5-4ec1-8822-fc8de3daa0be"/>
+<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/135a9f74-0eb1-45d9-86ea-777d89cd369d"/>
+<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/f16df21c-fb65-46c6-87c9-4acac0484987"/>
+<img width="30%" src="https://github.com/oksuman/DorunDorun/assets/39685824/21404521-c158-48ea-9978-1736b39b132c"/>
